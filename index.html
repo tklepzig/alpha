@@ -49,20 +49,16 @@
       element.style.opacity = element.style.opacity === "0.3" ? 1 : 0.3;
     }
 
-    const load = () =>
-      fetch("/list")
-        .then(res => res.text())
-        .then(tasks => {
-          const sections = tasks
-            .split(/\r?\n/)
-            .filter(task => task)
-            .map(task => `<section onclick="toggleOpacity(this)">${task}</section>`);
+    fetch("/list")
+      .then(res => res.text())
+      .then(tasks => {
+        const sections = tasks
+          .split(/\r?\n/)
+          .filter(task => task)
+          .map(task => `<section onclick="toggleOpacity(this)">${task}</section>`);
 
-          document.getElementById("tasks").innerHTML = sections.join("");
-        });
-
-    load();
-    setInterval(load, 15000);
+        document.getElementById("tasks").innerHTML = sections.join("");
+      });
   </script>
 </body>
 </html>
