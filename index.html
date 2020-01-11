@@ -60,15 +60,18 @@
         });
 
     const toggleOpacity = element => {
-      if (element.style.opacity !== "0.2") {
+      element.style.opacity = element.style.opacity !== "0.2" ? 0.2 : 1;
+
+      const hiddenTasks = [...document.getElementsByTagName("section")]
+        .filter(x => x.style.opacity === "0.2");
+
+      if (hiddenTasks.length > 0) {
         // stop auto refresh since it would reset the changed opacity
         clearInterval(loadTimer);
-        element.style.opacity = 0.2;
-        return;
       }
-
-      loadTimer = setInterval(load, 15000);
-      element.style.opacity = 1;
+      else {
+        loadTimer = setInterval(load, 15000);
+      }
     }
 
     load();
