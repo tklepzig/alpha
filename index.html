@@ -45,21 +45,34 @@
 <body>
   <article id="tasks"></article> 
   <script>
+    let loadTimer;
+
+    const load = () =>
+      fetch("/list")
+        .then(res => res.text())
+        .then(tasks => {
+          const sections = tasks
+            .split(/\r?\n/)
+            .filter(task => task)
+            .map(task => `<section onclick="toggleOpacity(this)">${task}</section>`);
+
+          document.getElementById("tasks").innerHTML = sections.join("");
+        });
+
     const toggleOpacity = element => {
-      console.log(element.style.opacity)
-      element.style.opacity = element.style.opacity === "0.2" ? 1 : 0.2;
+      if (element.style.opacity !== "0.2") {
+        // stop auto refresh since it would reset the changed opacity
+        clearInterval(loadTimer);
+        element.style.opacity = 0.2;
+        return;
+      }
+
+      loadTimer = setInterval(load, 15000);
+      element.style.opacity = 1;
     }
 
-    fetch("/list")
-      .then(res => res.text())
-      .then(tasks => {
-        const sections = tasks
-          .split(/\r?\n/)
-          .filter(task => task)
-          .map(task => `<section onclick="toggleOpacity(this)">${task}</section>`);
-
-        document.getElementById("tasks").innerHTML = sections.join("");
-      });
+    load();
+    loadTimer = setInterval(load, 15000);
   </script>
 </body>
 </html>
