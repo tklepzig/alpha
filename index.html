@@ -37,12 +37,18 @@
       padding: 0.75rem 1rem;
       background: rgba(55, 55, 55, 0.4); 
       box-shadow: 0 0 10px 2px rgba(15, 15, 15, 0.6);
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <article id="tasks"></article> 
   <script>
+    const toggleOpacity = element => {
+      console.log(element.style.opacity)
+      element.style.opacity = element.style.opacity === "0.3" ? 1 : 0.3;
+    }
+
     const load = () =>
       fetch("/list")
         .then(res => res.text())
@@ -50,7 +56,7 @@
           const sections = tasks
             .split(/\r?\n/)
             .filter(task => task)
-            .map(task => `<section>${task}</section>`);
+            .map(task => `<section onclick="toggleOpacity(this)">${task}</section>`);
 
           document.getElementById("tasks").innerHTML = sections.join("");
         });
