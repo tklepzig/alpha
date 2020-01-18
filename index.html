@@ -1,81 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Alpha</title>
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="msapplication-tap-highlight" content="no" />
-  <meta name="theme-color" content="#2d2d2d" />
-  <meta
-    name="viewport"
-    content="user-scalable=yes, initial-scale=1.0, maximum-scale=10.0, width=device-width"
+  <head>
+    <meta charset="UTF-8" />
+    <title>Alpha</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="theme-color" content="#2d2d2d" />
+    <meta
+      name="viewport"
+      content="user-scalable=yes, initial-scale=1.0, maximum-scale=10.0, width=device-width"
     />
-  <style>
-    html {
-      font-size: 18px;
-      margin: 0;
-    }
-    body {
-      -webkit-tap-highlight-color: transparent;
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0.5rem 0;
-      background: #2d2d2d; 
-      color: #cdcdcd;
-      font-family: sans-serif;
-      font-size: 1rem;
-    }
-    article {
-      display: grid;
-      grid-template-columns: 1fr minmax(10rem, 45rem) 1fr;
-      box-sizing: border-box;
-    }
-    section {
-      grid-column: 2;
-      margin: 0.5rem 1rem;
-      padding: 0.75rem 1rem;
-      background: rgba(55, 55, 55, 0.4); 
-      box-shadow: 0 0 10px 2px rgba(15, 15, 15, 0.6);
-      cursor: pointer;
-      transition: opacity 0.2s ease-in-out;
-    }
-  </style>
-</head>
-<body>
-  <article id="tasks"></article> 
-  <script>
-    let loadTimer;
-
-    const load = () =>
-      fetch("/list")
-        .then(res => res.text())
-        .then(tasks => {
-          const sections = tasks
-            .split(/\r?\n/)
-            .filter(task => task)
-            .map(task => `<section onclick="toggleOpacity(this)">${task}</section>`);
-
-          document.getElementById("tasks").innerHTML = sections.join("");
-        });
-
-    const toggleOpacity = element => {
-      element.style.opacity = element.style.opacity !== "0.2" ? 0.2 : 1;
-
-      const hiddenTasks = [...document.getElementsByTagName("section")]
-        .filter(x => x.style.opacity === "0.2");
-
-      if (hiddenTasks.length > 0) {
-        // stop auto refresh since it would reset the changed opacity
-        clearInterval(loadTimer);
+    <style>
+      html {
+        font-size: 18px;
+        margin: 0;
       }
-      else {
-        loadTimer = setInterval(load, 15000);
+      body {
+        -webkit-tap-highlight-color: transparent;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0.5rem 0;
+        background: #2d2d2d;
+        color: #cdcdcd;
+        font-family: sans-serif;
+        font-size: 1rem;
       }
-    }
+      article {
+        display: grid;
+        grid-template-columns: 1fr minmax(10rem, 45rem) 1fr;
+        box-sizing: border-box;
+      }
+      section {
+        grid-column: 2;
+        margin: 0.5rem 1rem;
+        padding: 0.75rem 1rem;
+        background: rgba(55, 55, 55, 0.4);
+        box-shadow: 0 0 10px 2px rgba(15, 15, 15, 0.6);
+        cursor: pointer;
+        transition: opacity 0.2s ease-in-out;
+      }
+      section.done {
+        text-decoration: line-through;
+        color: #cdcdcdaa;
+      }
+    </style>
+  </head>
+  <body>
+    <article id="tasks"></article>
+    <script>
+      let loadTimer;
 
-    load();
-    loadTimer = setInterval(load, 15000);
-  </script>
-</body>
+      const load = () =>
+        fetch("/list")
+          .then(res => res.text())
+          .then(tasks => {
+            const sections = tasks
+              .split(/\r?\n/)
+              .filter(task => task)
+              .map(task =>
+                task.match(/~~.*~~/) !== null
+                  ? [task.replace(/~~(.*)~~/, "$1"), true]
+                  : [task, false]
+              )
+              .map(
+                ([task, isDone]) =>
+                  `<section class="${
+                    isDone ? "done" : ""
+                  }" onclick="toggleOpacity(this)">${task}</section>`
+              );
+
+            document.getElementById("tasks").innerHTML = sections.join("");
+          });
+
+      const toggleOpacity = element => {
+        element.style.opacity = element.style.opacity !== "0.2" ? 0.2 : 1;
+
+        const hiddenTasks = [
+          ...document.getElementsByTagName("section")
+        ].filter(x => x.style.opacity === "0.2");
+
+        if (hiddenTasks.length > 0) {
+          // stop auto refresh since it would reset the changed opacity
+          clearInterval(loadTimer);
+        } else {
+          loadTimer = setInterval(load, 15000);
+        }
+      };
+
+      load();
+      loadTimer = setInterval(load, 15000);
+    </script>
+  </body>
 </html>
