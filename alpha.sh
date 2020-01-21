@@ -33,7 +33,7 @@ list()
 {
   strikeThrough=`echo -e '\033[9;90m'`
   normal=`echo -e '\033[0m'`
-  tasks=$(curl "$url/list" 2>/dev/null)
+  tasks=$(curl "$url/md" 2>/dev/null)
   while IFS= read -r line
   do
     echo -e $line | sed -e "s/~~/$strikeThrough/g" -e "s/$/$normal/g"
