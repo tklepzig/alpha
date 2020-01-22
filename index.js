@@ -68,7 +68,10 @@ const markdown = async () => {
 };
 
 const start = async () => {
-  await fs.ensureFile(tasksFilePath);
+  const tasksFileExists = await fs.pathExists(tasksFilePath);
+  if (!tasksFileExists) {
+    await writeTasks([]);
+  }
 
   app.get("/u/:taskNo", async (req, res) => {
     await undone(req.params.taskNo);
