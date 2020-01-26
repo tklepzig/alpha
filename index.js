@@ -5,7 +5,7 @@ const express = require("express");
 const YAML = require("yaml");
 const eol = require("os").EOL;
 const app = express();
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({extended: true}));
 
 const port = 3003;
 const onlyLocalDelete = true;
@@ -21,19 +21,19 @@ const writeTasks = tasks =>
 
 const append = async text => {
   const tasks = await readTasks();
-  return writeTasks([...tasks, { text, isDone: false }]);
+  return writeTasks([...tasks, {text, isDone: false}]);
 };
 
 const prepend = async text => {
   const tasks = await readTasks();
-  return writeTasks([{ text, isDone: false }, ...tasks]);
+  return writeTasks([{text, isDone: false}, ...tasks]);
 };
 
 const done = async taskNo => {
   const tasks = await readTasks();
   return writeTasks(
     tasks.map((task, i) =>
-      i + 1 === parseInt(taskNo) ? { ...task, isDone: true } : task
+      i + 1 === parseInt(taskNo) ? {...task, isDone: true} : task
     )
   );
 };
@@ -42,7 +42,7 @@ const undone = async taskNo => {
   const tasks = await readTasks();
   return writeTasks(
     tasks.map((task, i) =>
-      i + 1 === parseInt(taskNo) ? { ...task, isDone: false } : task
+      i + 1 === parseInt(taskNo) ? {...task, isDone: false} : task
     )
   );
 };
@@ -54,14 +54,14 @@ const clear = async () => {
 
 const list = async () => {
   const tasks = await readTasks();
-  return tasks.map((task, i) => ({ ...task, id: i + 1 }));
+  return tasks.map((task, i) => ({...task, id: i + 1}));
 };
 
 const markdown = async () => {
   const tasks = await readTasks();
   return tasks
     .map(
-      ({ text, isDone }, i) =>
+      ({text, isDone}, i) =>
         `${isDone ? "~~" : ""}${i + 1} - ${text}${isDone ? "~~" : ""}`
     )
     .join(eol);
@@ -79,7 +79,7 @@ const start = async () => {
   });
   app.post("/undone", async (req, res) => {
     await undone(req.body.taskNo);
-    return res.redirect("/");
+    return res.sendStatus(200);
   });
 
   app.get("/d/:taskNo", async (req, res) => {
@@ -88,11 +88,11 @@ const start = async () => {
   });
   app.post("/done", async (req, res) => {
     await done(req.body.taskNo);
-    return res.redirect("/");
+    return res.sendStatus(200);
   });
 
   app.get("/c", async (req, res) => {
-    const { localAddress, remoteAddress } = req.connection;
+    const {localAddress, remoteAddress} = req.connection;
     if (onlyLocalDelete && localAddress !== remoteAddress) {
       return res.sendStatus(403);
     }
@@ -100,12 +100,12 @@ const start = async () => {
     return res.redirect("/");
   });
   app.post("/clear", async (req, res) => {
-    const { localAddress, remoteAddress } = req.connection;
+    const {localAddress, remoteAddress} = req.connection;
     if (onlyLocalDelete && localAddress !== remoteAddress) {
       return res.sendStatus(403);
     }
     await clear();
-    return res.redirect("/");
+    return res.sendStatus(200);
   });
 
   app.get("/p/:task", async (req, res) => {
@@ -114,7 +114,7 @@ const start = async () => {
   });
   app.post("/prepend", async (req, res) => {
     await prepend(req.body.task);
-    return res.redirect("/");
+    return res.sendStatus(200);
   });
 
   app.get("/a/:task", async (req, res) => {
@@ -123,7 +123,7 @@ const start = async () => {
   });
   app.post("/append", async (req, res) => {
     await append(req.body.task);
-    return res.redirect("/");
+    return res.sendStatus(200);
   });
 
   app.get("/tasks", async (_, res) => {
@@ -135,7 +135,13 @@ const start = async () => {
   });
 
   app.get("/", async (_, res) => {
-    return res.sendFile(path.resolve(__dirname, "index.html"));
+    const html = await fs.readFile(path.resolve(__dirname, "index.html"), "utf-8");
+    return res.send(html.replace(/__MODE__/g, ""));
+  });
+
+  app.get("/edit", async (_, res) => {
+    const html = await fs.readFile(path.resolve(__dirname, "index.html"), "utf-8");
+    return res.send(html.replace(/__MODE__/g, "edit"));
   });
 
   app.listen(port, () => {
