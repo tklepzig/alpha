@@ -135,13 +135,7 @@ const start = async () => {
   });
 
   app.get("/", async (_, res) => {
-    const html = await fs.readFile(path.resolve(__dirname, "index.html"), "utf-8");
-    return res.send(html.replace(/__MODE__/g, ""));
-  });
-
-  app.get("/edit", async (_, res) => {
-    const html = await fs.readFile(path.resolve(__dirname, "index.html"), "utf-8");
-    return res.send(html.replace(/__MODE__/g, "edit"));
+    return res.sendFile(path.resolve(__dirname, "index.html"));
   });
 
   app.listen(port, () => {
