@@ -1,6 +1,6 @@
 #!/bin/bash
 
-url="localhost:3003"
+url="whitequeen:3003"
 
 append()
 {
