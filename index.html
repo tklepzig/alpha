@@ -13,7 +13,6 @@
     />
     <style>
       :root {
-        --fg: #cdcdcd;
         --accent: 80, 60%, 25%;
       }
     </style>
@@ -46,23 +45,14 @@
         position: relative;
       }
       #edit > input {
+        border: none;
+        padding: 0.75rem 1rem;
         color: #cdcdcd;
-        background: transparent;
+        background: rgba(40, 40, 40, 0.4);
         font-family: inherit;
         font-size: 1rem;
-      }
-      #edit:before {
-        content: "Add new task";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        width: auto;
-        height: auto;
-        display: grid;
-        align-items: center;
-        justify-items: center;
+        box-shadow: 0 0 10px 0px rgba(15, 15, 15, 0.4) inset;
+          margin: 0 -2px;
       }
       body.edit #edit {
         display: grid;
@@ -116,23 +106,25 @@
 
       document.getElementById("edit").addEventListener("submit", e => {
         e.preventDefault();
-        addTask(document.getElementById("new-task").value, "append");
+        const input = document.getElementById("new-task");
+        addTask(input.value, "append")
+        .then(() => {
+          input.value = "";
+        });
         return false;
       });
 
       const addTask = text => {
-        if (!text) return;
-        fetch("/append", {
+        if (!text) return Promise.resolve();
+        return fetch("/append", {
           method: "post",
           body: `task=${text}`,
           headers: { "Content-type": "application/x-www-form-urlencoded" }
-        }).then(res => {
-          document.getElementById("new-task").value = "";
-          load().then(() => {
+        })
+          .then(() => load())
+          .then(() => {
             window.scrollTo(0, document.body.scrollHeight);
           });
-        });
-        return false;
       };
 
       const taskClick = (id, isDone, element) => {
