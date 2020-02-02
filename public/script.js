@@ -9,9 +9,9 @@ const load = () =>
         `<section class="${
                   isDone ? "done" : ""
                 }" onclick="toggleOpacity(this)">
-                    <span>${id}</span>
+                    <button class="move2top" onclick="move2top(${id}, event)">${id}</button>
                     <span>${text}</span>
-                    <button onclick="toggleDone(${id}, ${isDone}, event)" />
+                    <button class="toggle-done" onclick="toggleDone(${id}, ${isDone}, event)" />
                     </section>`
       );
 
@@ -39,6 +39,15 @@ const addTask = text => {
     .then(() => {
       window.scrollTo(0, document.body.scrollHeight);
     });
+};
+
+const move2top = (id, e) => {
+  e.stopPropagation();
+  fetch(`/move2top`, {
+    method: "post",
+    body: `taskNo=${id}`,
+    headers: { "Content-type": "application/x-www-form-urlencoded" }
+  }).then(() => load());
 };
 
 const toggleDone = (id, isDone, e) => {

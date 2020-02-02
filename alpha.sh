@@ -8,10 +8,9 @@ append()
   curl --data-urlencode "task=$task" "$url/append" >/dev/null 2>&1
 }
 
-prepend()
+move2top()
 {
-  task="$@"
-  curl --data-urlencode "task=$task" "$url/prepend" >/dev/null 2>&1
+  curl -d taskNo=$1 "$url/move2top" >/dev/null 2>&1
 }
 
 clear_all()
@@ -52,9 +51,9 @@ then
 elif [ "$1" = "--undone" ] || [ "$1" = "-u" ]
 then
   mark_undone $2
-elif [ "$1" = "--prepend" ] || [ "$1" = "-p" ]
+elif [ "$1" = "--move2top" ] || [ "$1" = "-t" ]
 then
-  prepend "${@:2}"
+  move2top $2
 else
   append "$@"
 fi

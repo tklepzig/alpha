@@ -99,7 +99,7 @@ const start = async () => {
     return res.sendStatus(200);
   });
 
-  app.get("/m2t/:taskNo", async (req, res) => {
+  app.get("/t/:taskNo", async (req, res) => {
     await move2top(req.params.taskNo);
     return res.redirect("/");
   });
