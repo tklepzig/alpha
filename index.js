@@ -142,8 +142,9 @@ const start = async () => {
     return res.send(await markdown());
   });
 
+  app.use(express.static(path.resolve(__dirname, "public")));
   app.get("/", async (_, res) => {
-    return res.sendFile(path.resolve(__dirname, "index.html"));
+    return res.sendFile(path.resolve(__dirname, "public", "index.html"));
   });
 
   app.listen(port, () => {
