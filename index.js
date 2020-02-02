@@ -24,9 +24,17 @@ const append = async text => {
   return writeTasks([...tasks, {text, isDone: false}]);
 };
 
-const prepend = async text => {
+const move2top = async taskNo => {
   const tasks = await readTasks();
-  return writeTasks([{text, isDone: false}, ...tasks]);
+  return writeTasks(tasks.reduce((result, task, i) => {
+    if (i + 1 === parseInt(taskNo)) {
+      result.unshift(task);
+    }
+    else {
+      result.push(task);
+    }
+    return result;
+  }, []));
 };
 
 const done = async taskNo => {
@@ -91,6 +99,15 @@ const start = async () => {
     return res.sendStatus(200);
   });
 
+  app.get("/m2t/:taskNo", async (req, res) => {
+    await move2top(req.params.taskNo);
+    return res.redirect("/");
+  });
+  app.post("/move2top", async (req, res) => {
+    await move2top(req.body.taskNo);
+    return res.sendStatus(200);
+  });
+
   app.get("/c", async (req, res) => {
     const {localAddress, remoteAddress} = req.connection;
     if (onlyLocalDelete && localAddress !== remoteAddress) {
@@ -105,15 +122,6 @@ const start = async () => {
       return res.sendStatus(403);
     }
     await clear();
-    return res.sendStatus(200);
-  });
-
-  app.get("/p/:task", async (req, res) => {
-    await prepend(req.params.task);
-    return res.redirect("/");
-  });
-  app.post("/prepend", async (req, res) => {
-    await prepend(req.body.task);
     return res.sendStatus(200);
   });
 
