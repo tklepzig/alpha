@@ -4,8 +4,11 @@ const bodyParser = require("body-parser");
 const express = require("express");
 const YAML = require("yaml");
 const eol = require("os").EOL;
+const WebSocket = require("ws");
+let socket;
+
 const app = express();
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 const port = 3003;
 const onlyLocalDelete = true;
@@ -21,27 +24,28 @@ const writeTasks = tasks =>
 
 const append = async text => {
   const tasks = await readTasks();
-  return writeTasks([...tasks, {text, isDone: false}]);
+  return writeTasks([...tasks, { text, isDone: false }]);
 };
 
 const move2top = async taskNo => {
   const tasks = await readTasks();
-  return writeTasks(tasks.reduce((result, task, i) => {
-    if (i + 1 === parseInt(taskNo)) {
-      result.unshift(task);
-    }
-    else {
-      result.push(task);
-    }
-    return result;
-  }, []));
+  return writeTasks(
+    tasks.reduce((result, task, i) => {
+      if (i + 1 === parseInt(taskNo)) {
+        result.unshift(task);
+      } else {
+        result.push(task);
+      }
+      return result;
+    }, [])
+  );
 };
 
 const done = async taskNo => {
   const tasks = await readTasks();
   return writeTasks(
     tasks.map((task, i) =>
-      i + 1 === parseInt(taskNo) ? {...task, isDone: true} : task
+      i + 1 === parseInt(taskNo) ? { ...task, isDone: true } : task
     )
   );
 };
@@ -50,7 +54,7 @@ const undone = async taskNo => {
   const tasks = await readTasks();
   return writeTasks(
     tasks.map((task, i) =>
-      i + 1 === parseInt(taskNo) ? {...task, isDone: false} : task
+      i + 1 === parseInt(taskNo) ? { ...task, isDone: false } : task
     )
   );
 };
@@ -62,18 +66,27 @@ const clear = async () => {
 
 const list = async () => {
   const tasks = await readTasks();
-  return tasks.map((task, i) => ({...task, id: i + 1}));
+  return tasks.map((task, i) => ({ ...task, id: i + 1 }));
 };
 
 const markdown = async () => {
   const tasks = await readTasks();
   return tasks
     .map(
-      ({text, isDone}, i) =>
+      ({ text, isDone }, i) =>
         `${isDone ? "~~" : ""}${i + 1} - ${text}${isDone ? "~~" : ""}`
     )
     .join(eol);
 };
+
+const broadcastTasks = async () => {
+  const tasks = await list();
+  socket.clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify(tasks));
+    }
+  });
+}
 
 const start = async () => {
   const tasksFileExists = await fs.pathExists(tasksFilePath);
@@ -83,54 +96,64 @@ const start = async () => {
 
   app.get("/u/:taskNo", async (req, res) => {
     await undone(req.params.taskNo);
+    await broadcastTasks();
     return res.redirect("/");
   });
   app.post("/undone", async (req, res) => {
     await undone(req.body.taskNo);
+    await broadcastTasks();
     return res.sendStatus(200);
   });
 
   app.get("/d/:taskNo", async (req, res) => {
     await done(req.params.taskNo);
+    await broadcastTasks();
     return res.redirect("/");
   });
   app.post("/done", async (req, res) => {
     await done(req.body.taskNo);
+    await broadcastTasks();
     return res.sendStatus(200);
   });
 
   app.get("/t/:taskNo", async (req, res) => {
     await move2top(req.params.taskNo);
+    await broadcastTasks();
     return res.redirect("/");
   });
   app.post("/move2top", async (req, res) => {
     await move2top(req.body.taskNo);
+    await broadcastTasks();
     return res.sendStatus(200);
   });
 
   app.get("/c", async (req, res) => {
-    const {localAddress, remoteAddress} = req.connection;
+    const { localAddress, remoteAddress } = req.connection;
     if (onlyLocalDelete && localAddress !== remoteAddress) {
       return res.sendStatus(403);
     }
     await clear();
+    await broadcastTasks();
     return res.redirect("/");
   });
   app.post("/clear", async (req, res) => {
-    const {localAddress, remoteAddress} = req.connection;
+    const { localAddress, remoteAddress } = req.connection;
     if (onlyLocalDelete && localAddress !== remoteAddress) {
       return res.sendStatus(403);
     }
     await clear();
+    await broadcastTasks();
     return res.sendStatus(200);
   });
 
   app.get("/a/:task", async (req, res) => {
     await append(req.params.task);
+    await broadcastTasks();
     return res.redirect("/");
   });
   app.post("/append", async (req, res) => {
     await append(req.body.task);
+    await broadcastTasks();
     return res.sendStatus(200);
   });
 
@@ -147,9 +170,10 @@ const start = async () => {
     return res.sendFile(path.resolve(__dirname, "public", "index.html"));
   });
 
-  app.listen(port, () => {
+  const server = app.listen(port, () => {
     console.log(`Listening on port ${port}`);
   });
+  socket = new WebSocket.Server({ server });
 };
 
 start();
