@@ -57,10 +57,21 @@ fetch("/tasks")
   .then(res => res.json())
   .then(tasks => render(tasks));
 
-const ws = new WebSocket(`ws://${window.location.host}`);
-ws.onmessage = message => {
+const connect = () => {
+  const ws = new WebSocket(`ws://${window.location.host}`);
+  ws.onmessage = onMessage;
+  ws.onclose = onClose;
+};
+
+const onMessage = message => {
   const hiddenTasks = document.querySelectorAll("section.hidden");
   if (hiddenTasks.length === 0) {
     render(JSON.parse(message.data));
   }
 };
+const onClose = () => {
+  setTimeout(()=>{
+    connect();
+  }, 3000);
+};
+connect();
