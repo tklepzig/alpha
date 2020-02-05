@@ -43,7 +43,7 @@ body {
   padding: 0.5rem 0;
   background: hsl(var(--bg), 18%);
   color: hsl(var(--fg));
-  font-family: sans-serif;
+  font-family: "Open Sans", sans-serif;
   font-size: 1rem;
   box-sizing: border-box;
   display: grid;
