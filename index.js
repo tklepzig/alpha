@@ -5,10 +5,12 @@ const express = require("express");
 const YAML = require("yaml");
 const eol = require("os").EOL;
 const WebSocket = require("ws");
-let socket;
+const { createTask } = require("./public/common");
 
+let socket;
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 const port = 3003;
 const onlyLocalDelete = true;
@@ -24,7 +26,7 @@ const writeTasks = tasks =>
 
 const append = async text => {
   const tasks = await readTasks();
-  return writeTasks([...tasks, { text, isDone: false }]);
+  return writeTasks([...tasks, createTask(text)]);
 };
 
 const move2top = async taskNo => {
@@ -64,9 +66,18 @@ const clear = async () => {
   return writeTasks(tasks.filter(task => !task.isDone));
 };
 
-const list = async () => {
-  const tasks = await readTasks();
-  return tasks.map((task, i) => ({ ...task, id: i + 1 }));
+const removeDuplicates = tasks =>
+  tasks.reduce(
+    (uniqueTasks, task) =>
+      uniqueTasks.find(t => t.id === task.id && t.text === task.text)
+        ? uniqueTasks
+        : [...uniqueTasks, task],
+    []
+  );
+const sync = async clientTasks => {
+  const serverTasks = await readTasks();
+  const uniqueTasks = removeDuplicates([...clientTasks, ...serverTasks]);
+  await writeTasks(uniqueTasks);
 };
 
 const markdown = async () => {
@@ -80,13 +91,13 @@ const markdown = async () => {
 };
 
 const broadcastTasks = async () => {
-  const tasks = await list();
+  const tasks = await readTasks();
   socket.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
       client.send(JSON.stringify(tasks));
     }
   });
-}
+};
 
 const start = async () => {
   const tasksFileExists = await fs.pathExists(tasksFilePath);
@@ -158,7 +169,13 @@ const start = async () => {
   });
 
   app.get("/tasks", async (_, res) => {
-    return res.send(await list());
+    return res.send(await readTasks());
+  });
+
+  app.post("/sync", async (req, res) => {
+    await sync(req.body);
+    await broadcastTasks();
+    return res.sendStatus(200);
   });
 
   app.get("/md", async (_, res) => {

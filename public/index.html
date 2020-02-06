@@ -16,12 +16,21 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" type="text/css" href="/style.css">
+    <!--<script>-->
+      <!--if ("serviceWorker" in navigator) {-->
+        <!--window.addEventListener("load", function() {-->
+          <!--navigator.serviceWorker.register("sw.js");-->
+        <!--});-->
+      <!--}-->
+    <!--</script>-->
   </head>
   <body>
+    <span id="connection-status"></span>
     <article id="tasks"></article>
     <form id="edit">
       <input id="new-task" type="text" autocomplete="off" />
     </form>
+    <script src="common.js"></script>
     <script src="script.js"></script>
   </body>
 </html>
