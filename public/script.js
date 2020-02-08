@@ -1,4 +1,19 @@
+const threeDaysInMs = 3 * 24 * 60 * 60 * 1000;
 let isOnline = false;
+
+const renderSyncDryRunResult = tasks => {
+  const sections = tasks.map(
+    ({ text, isDone }) =>
+      `<section class="${isDone ? "done" : ""}">
+          <span>${text}</span>
+        </section>`
+  );
+
+  document.getElementById("tasks").innerHTML = [
+    "<h1>Confirm Sync</h1>",
+    ...sections
+  ].join("");
+};
 
 const render = tasks => {
   const sections = tasks.map(
@@ -97,15 +112,7 @@ const toggleOpacity = element => {
   element.classList.toggle("hidden");
 };
 
-renderTasks();
-const connect = () => {
-  const ws = new WebSocket(`ws://${window.location.host}`);
-  ws.onopen = onOpen;
-  ws.onmessage = onMessage;
-  ws.onclose = onClose;
-};
-
-const onOpen = () => {
+const sync = () =>
   fetch(`/sync`, {
     method: "POST",
     body: JSON.stringify(readTasks()),
@@ -118,10 +125,47 @@ const onOpen = () => {
     document.getElementById("connection-status").classList.remove("offline");
     isOnline = true;
   });
+
+const syncDryRun = () =>
+  fetch(`/sync-dry-run`, {
+    method: "POST",
+    body: JSON.stringify(readTasks()),
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json"
+    }
+  }).then(res => res.json());
+
+const resetTasks = () => {
+  localStorage.clear();
+  fetch("/tasks")
+    .then(res => res.json())
+    .then(tasks => {
+      writeTasks(tasks);
+      renderTasks();
+    });
+};
+
+const connect = () => {
+  const ws = new WebSocket(`ws://${window.location.host}`);
+  ws.onopen = onOpen;
+  ws.onmessage = onMessage;
+  ws.onclose = onClose;
+};
+
+const onOpen = () => {
+  const now = new Date().toISOString();
+  const lastSync = localStorage.getItem("alpha-last-sync") || now;
+  if (new Date(now).getTime() - new Date(lastSync).getTime() > threeDaysInMs) {
+    syncDryRun().then(renderSyncDryRunResult);
+  } else {
+    sync();
+  }
 };
 
 const onMessage = ({ data: tasks }) => {
   writeTasks(JSON.parse(tasks));
+  localStorage.setItem("alpha-last-sync", new Date().toISOString());
   const hiddenTasks = document.querySelectorAll("section.hidden");
   if (hiddenTasks.length === 0) {
     renderTasks();
@@ -135,4 +179,6 @@ const onClose = () => {
     connect();
   }, 3000);
 };
+
+renderTasks();
 connect();
