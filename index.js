@@ -74,6 +74,18 @@ const removeDuplicates = tasks =>
         : [...uniqueTasks, task],
     []
   );
+const syncDryRun = async clientTasks => {
+  const serverTasks = await readTasks();
+  const newTasksFromClient = clientTasks.filter(
+    clientTask =>
+      !serverTasks.find(
+        serverTask =>
+          serverTask.id === clientTask.id && serverTask.text === clientTask.text
+      )
+  );
+  return newTasksFromClient;
+};
+
 const sync = async clientTasks => {
   const serverTasks = await readTasks();
   const uniqueTasks = removeDuplicates([...clientTasks, ...serverTasks]);
@@ -176,6 +188,10 @@ const start = async () => {
     await sync(req.body);
     await broadcastTasks();
     return res.sendStatus(200);
+  });
+
+  app.post("/sync-dry-run", async (req, res) => {
+    return res.send(await syncDryRun(req.body));
   });
 
   app.get("/md", async (_, res) => {
