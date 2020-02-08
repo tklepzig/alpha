@@ -9,23 +9,25 @@
     <meta
       name="viewport"
       content="user-scalable=yes, initial-scale=1.0, maximum-scale=10.0, width=device-width"
-      />
+    />
     <title>Alpha</title>
     <link
       href="https://fonts.googleapis.com/css?family=Open+Sans"
       rel="stylesheet"
     />
-    <link rel="stylesheet" type="text/css" href="/style.css">
+    <link rel="stylesheet" type="text/css" href="/style.css" />
     <!--<script>-->
-      <!--if ("serviceWorker" in navigator) {-->
-        <!--window.addEventListener("load", function() {-->
-          <!--navigator.serviceWorker.register("sw.js");-->
-        <!--});-->
-      <!--}-->
+    <!--if ("serviceWorker" in navigator) {-->
+    <!--window.addEventListener("load", function() {-->
+    <!--navigator.serviceWorker.register("sw.js");-->
+    <!--});-->
+    <!--}-->
     <!--</script>-->
   </head>
   <body>
-    <span id="connection-status"></span>
+    <div id="connection-status" class="offline">
+      <span></span>
+    </div>
     <article id="tasks"></article>
     <form id="edit">
       <input id="new-task" type="text" autocomplete="off" />

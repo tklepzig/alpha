@@ -114,8 +114,8 @@ const onOpen = () => {
       "Content-Type": "application/json"
     }
   }).then(() => {
-    document.getElementById("connection-status").style.color = "lime";
-    document.getElementById("connection-status").innerText = "Online";
+    document.getElementById("connection-status").classList.add("online");
+    document.getElementById("connection-status").classList.remove("offline");
     isOnline = true;
   });
 };
@@ -128,8 +128,8 @@ const onMessage = ({ data: tasks }) => {
   }
 };
 const onClose = () => {
-  document.getElementById("connection-status").style.color = "red";
-  document.getElementById("connection-status").innerText = "Offline";
+  document.getElementById("connection-status").classList.remove("online");
+  document.getElementById("connection-status").classList.add("offline");
   isOnline = false;
   setTimeout(() => {
     connect();
