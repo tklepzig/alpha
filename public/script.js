@@ -156,11 +156,19 @@ const connect = () => {
 const onOpen = () => {
   const now = new Date().toISOString();
   const lastSync = localStorage.getItem("alpha-last-sync") || now;
-  if (new Date(now).getTime() - new Date(lastSync).getTime() > threeDaysInMs) {
-    syncDryRun().then(renderSyncDryRunResult);
-  } else {
+  if (new Date(now).getTime() - new Date(lastSync).getTime() <= threeDaysInMs) {
     sync();
+    return;
   }
+
+  syncDryRun().then(tasks => {
+    if (tasks.length === 0) {
+      sync();
+      return;
+    }
+
+    renderSyncDryRunResult(tasks);
+  });
 };
 
 const onMessage = ({ data: tasks }) => {

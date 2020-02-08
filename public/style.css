@@ -66,6 +66,7 @@ body {
   height: 0.2rem;
   width: 1rem;
   border-radius: 0.1rem;
+  transition: background-color 0.5s ease-in-out;
 }
 
 #connection-status.offline > span {
