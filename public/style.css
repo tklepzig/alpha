@@ -76,21 +76,25 @@ body {
   text-decoration: line-through;
   color: hsla(var(--fg), 0.6);
 }
+#tasks > section > span {
+  padding: 0.65rem 0;
+}
 #tasks > section > button {
   border: none;
   outline: none;
   cursor: pointer;
   margin: 0;
   align-self: stretch;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
 }
 #tasks > section.hidden > button {
   pointer-events: none;
 }
 #tasks > section > button.move2top {
-  font-size: inherit;
-  color: inherit;
   background: transparent;
-  padding: 0.75rem 1rem;
+  padding: 0 1rem;
   box-shadow: 0 0 30px -8px #000a;
   background: hsla(var(--task), calc(var(--l-base) + 10%), 0);
   transition: background 0.2s ease-in-out;
