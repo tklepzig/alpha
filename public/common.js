@@ -8,4 +8,9 @@ const generateGuid = () => {
   return uuid;
 };
 
-export const createTask = text => ({ text, isDone: false, id: generateGuid() });
+export const createTask = text => ({
+  text,
+  isDone: false,
+  id: generateGuid(),
+  lastModified: new Date().toISOString()
+});

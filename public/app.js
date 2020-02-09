@@ -89,6 +89,7 @@ const move2top = async (taskNo, e) => {
   );
   renderTasks();
 };
+window.move2top = move2top;
 
 const toggleDone = async (taskNo, isDone, e) => {
   e.stopPropagation();
@@ -108,10 +109,12 @@ const toggleDone = async (taskNo, isDone, e) => {
   );
   renderTasks();
 };
+window.toggleDone = toggleDone;
 
 const toggleOpacity = element => {
   element.classList.toggle("hidden");
 };
+window.toggleOpacity = toggleOpacity;
 
 const sync = tasks =>
   fetch(`/sync`, {
@@ -143,6 +146,7 @@ const resetTasks = () => {
     document.getElementById("sync-confirm").classList.add("hidden");
   });
 };
+window.resetTasks = resetTasks;
 
 const confirmSync = () => {
   sync(readTasks()).then(() => {
@@ -150,6 +154,7 @@ const confirmSync = () => {
     document.getElementById("sync-confirm").classList.add("hidden");
   });
 };
+window.confirmSync = confirmSync;
 
 const connect = () => {
   const ws = new WebSocket(`ws://${window.location.host}`);

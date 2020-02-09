@@ -51,7 +51,9 @@ const done = async taskNo => {
   const tasks = await readTasks();
   return writeTasks(
     tasks.map((task, i) =>
-      i + 1 === parseInt(taskNo) ? { ...task, isDone: true } : task
+      i + 1 === parseInt(taskNo)
+        ? { ...task, isDone: true, lastModified: new Date().toISOString() }
+        : task
     )
   );
 };
@@ -60,7 +62,9 @@ const undone = async taskNo => {
   const tasks = await readTasks();
   return writeTasks(
     tasks.map((task, i) =>
-      i + 1 === parseInt(taskNo) ? { ...task, isDone: false } : task
+      i + 1 === parseInt(taskNo)
+        ? { ...task, isDone: false, lastModified: new Date().toISOString() }
+        : task
     )
   );
 };
@@ -70,14 +74,28 @@ const clear = async () => {
   return writeTasks(tasks.filter(task => !task.isDone));
 };
 
-const removeDuplicates = tasks =>
-  tasks.reduce(
-    (uniqueTasks, task) =>
-      uniqueTasks.find(t => t.id === task.id && t.text === task.text)
-        ? uniqueTasks
-        : [...uniqueTasks, task],
-    []
-  );
+const removeDuplicates = tasks => {
+  const result = [];
+  tasks.forEach(task => {
+    if (!result.includes(task)) {
+      const duplicates = tasks.filter(
+        t => t.id === task.id && t.text === task.text
+      );
+      if (duplicates.length === 1) {
+        result.push(task);
+      } else {
+        result.push(
+          duplicates.sort((a, b) =>
+            a.lastModified < b.lastModified ? 1 : -1
+          )[0]
+        );
+      }
+    }
+  });
+
+  return result;
+};
+
 const syncDryRun = async clientTasks => {
   const serverTasks = await readTasks();
   const newTasksFromClient = clientTasks.filter(
