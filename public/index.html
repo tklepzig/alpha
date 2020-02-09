@@ -25,13 +25,23 @@
     <!--</script>-->
   </head>
   <body>
-    <div id="connection-status" class="offline">
-      <span></span>
+    <div id="sync-confirm" class="hidden">
+      <header>Sync Confirm</header>
+      <article></article>
+      <footer>
+        <button onclick="resetTasks()">Reset</button>
+        <button onclick="confirmSync()">Confirm</button>
+      </footer>
     </div>
-    <article id="tasks"></article>
-    <form id="edit">
-      <input id="new-task" type="text" autocomplete="off" />
-    </form>
+    <div id="main">
+      <div id="connection-status" class="offline">
+        <span></span>
+      </div>
+      <article id="tasks"></article>
+      <form id="edit">
+        <input id="new-task" type="text" autocomplete="off" />
+      </form>
+    </div>
     <script src="common.js"></script>
     <script src="script.js"></script>
   </body>

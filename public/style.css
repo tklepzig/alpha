@@ -49,6 +49,14 @@ body {
   grid-template-columns: 1fr minmax(10rem, 45rem) 1fr;
 }
 
+body > div {
+  grid-column: 2;
+}
+
+.hidden {
+  display: none;
+}
+
 #connection-status {
   position: fixed;
   top: 0;
@@ -77,13 +85,12 @@ body {
   background: hsl(90, 50%, 50%);
 }
 
-#tasks,
-#edit {
-  grid-column: 2;
+article,
+form {
   display: grid;
 }
 
-#tasks > section {
+article > section {
   border-radius: var(--border-radius);
   position: relative;
   display: grid;
@@ -96,17 +103,17 @@ body {
   transition: opacity 0.2s ease-in-out;
   word-break: break-all;
 }
-#tasks > section.hidden {
+article > section.hidden {
   opacity: 0.2;
 }
-#tasks > section.done {
+article > section.done {
   text-decoration: line-through;
   color: hsla(var(--fg), 0.6);
 }
-#tasks > section > span {
+article > section > span {
   padding: 0.65rem 1rem;
 }
-#tasks > section > button {
+article > section > button {
   border: none;
   outline: none;
   cursor: pointer;
@@ -116,10 +123,10 @@ body {
   font-size: inherit;
   color: inherit;
 }
-#tasks > section.hidden > button {
+article > section.hidden > button {
   pointer-events: none;
 }
-#tasks > section > button.move2top {
+article > section > button.move2top {
   background: transparent;
   padding: 0 1rem;
   box-shadow: 0 0 30px -8px #000a;
@@ -127,11 +134,11 @@ body {
   transition: background 0.2s ease-in-out;
   border-radius: var(--border-radius) 0 0 var(--border-radius);
 }
-#tasks > section > button.move2top:hover,
-#tasks > section > button.move2top:active {
+article > section > button.move2top:hover,
+article > section > button.move2top:active {
   background: hsla(var(--task), calc(var(--l-base) + 10%), 0.85);
 }
-#tasks > section > button.toggle-done {
+article > section > button.toggle-done {
   position: absolute;
   right: 0;
   top: 0;
@@ -143,16 +150,16 @@ body {
   transition: opacity 0.2s ease-in-out;
   border-radius: 0 var(--border-radius) var(--border-radius) 0;
 }
-#tasks > section > button.toggle-done:hover,
-#tasks > section > button.toggle-done:active {
+article > section > button.toggle-done:hover,
+article > section > button.toggle-done:active {
   opacity: 0.85;
 }
 
-#edit {
+form {
   margin: 0.5rem 1rem;
   position: relative;
 }
-#edit > input {
+form > input {
   border: none;
   border-radius: var(--border-radius);
   padding: 0.75rem 1rem;
@@ -163,7 +170,7 @@ body {
   box-shadow: 0 0 10px -2px rgba(15, 15, 15, 0.4) inset;
   margin: 0 -1px;
 }
-#edit > input:focus {
+form > input:focus {
   outline: 1px solid hsla(var(--task), var(--l-base));
   border: 1px solid hsla(var(--task), var(--l-base));
 }

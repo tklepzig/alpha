@@ -9,10 +9,9 @@ const renderSyncDryRunResult = tasks => {
         </section>`
   );
 
-  document.getElementById("tasks").innerHTML = [
-    "<h1>Confirm Sync</h1>",
-    ...sections
-  ].join("");
+  document.querySelector("#sync-confirm > article").innerHTML = sections.join(
+    ""
+  );
 };
 
 const render = tasks => {
@@ -112,10 +111,10 @@ const toggleOpacity = element => {
   element.classList.toggle("hidden");
 };
 
-const sync = () =>
+const sync = tasks =>
   fetch(`/sync`, {
     method: "POST",
-    body: JSON.stringify(readTasks()),
+    body: JSON.stringify(tasks),
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json"
@@ -137,13 +136,17 @@ const syncDryRun = () =>
   }).then(res => res.json());
 
 const resetTasks = () => {
-  localStorage.clear();
-  fetch("/tasks")
-    .then(res => res.json())
-    .then(tasks => {
-      writeTasks(tasks);
-      renderTasks();
-    });
+  sync([]).then(() => {
+    document.getElementById("main").classList.remove("hidden");
+    document.getElementById("sync-confirm").classList.add("hidden");
+  });
+};
+
+const confirmSync = () => {
+  sync(readTasks()).then(() => {
+    document.getElementById("main").classList.remove("hidden");
+    document.getElementById("sync-confirm").classList.add("hidden");
+  });
 };
 
 const connect = () => {
@@ -157,16 +160,18 @@ const onOpen = () => {
   const now = new Date().toISOString();
   const lastSync = localStorage.getItem("alpha-last-sync") || now;
   if (new Date(now).getTime() - new Date(lastSync).getTime() <= threeDaysInMs) {
-    sync();
+    sync(readTasks());
     return;
   }
 
   syncDryRun().then(tasks => {
     if (tasks.length === 0) {
-      sync();
+      sync(readTasks());
       return;
     }
 
+    document.getElementById("main").classList.add("hidden");
+    document.getElementById("sync-confirm").classList.remove("hidden");
     renderSyncDryRunResult(tasks);
   });
 };
