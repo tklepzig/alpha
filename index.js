@@ -1,11 +1,15 @@
-const fs = require("fs-extra");
-const path = require("path");
-const bodyParser = require("body-parser");
-const express = require("express");
-const YAML = require("yaml");
-const eol = require("os").EOL;
-const WebSocket = require("ws");
-const { createTask } = require("./public/common");
+import fs from "fs-extra";
+import path from "path";
+import { fileURLToPath } from "url";
+import bodyParser from "body-parser";
+import express from "express";
+import YAML from "yaml";
+import { EOL as eol } from "os";
+import WebSocket from "ws";
+import { createTask } from "./public/common.js";
+//
+// Necessary due to type module is enabled: https://stackoverflow.com/a/50052194
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 let socket;
 const app = express();

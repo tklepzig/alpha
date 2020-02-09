@@ -1,5 +1,3 @@
-"use strict";
-
 const generateGuid = () => {
   var timeinMs = new Date().getTime();
   var uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, char => {
@@ -10,4 +8,4 @@ const generateGuid = () => {
   return uuid;
 };
 
-this.createTask = text => ({ text, isDone: false, id: generateGuid() });
+export const createTask = text => ({ text, isDone: false, id: generateGuid() });
