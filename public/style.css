@@ -68,7 +68,7 @@ body > div {
   display: grid;
   align-items: center;
   justify-items: center;
-  background: inherit;
+  background: hsl(var(--bg), 18%);
 }
 #connection-status > span {
   height: 0.2rem;
