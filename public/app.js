@@ -112,7 +112,7 @@ const toggleDone = async (taskNo, isDone, e) => {
 window.toggleDone = toggleDone;
 
 const toggleOpacity = element => {
-  element.classList.toggle("hidden");
+  element.classList.toggle("fade");
 };
 window.toggleOpacity = toggleOpacity;
 

@@ -103,12 +103,13 @@ article > section {
   transition: opacity 0.2s ease-in-out;
   word-break: break-all;
 }
-article > section.hidden {
-  opacity: 0.2;
-}
 article > section.done {
   text-decoration: line-through;
   color: hsla(var(--fg), 0.6);
+  opacity: 0.6;
+}
+article > section.fade {
+  opacity: 0.2;
 }
 article > section > span {
   padding: 0.65rem 1rem;
