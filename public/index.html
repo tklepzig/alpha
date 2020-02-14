@@ -25,22 +25,51 @@
     <!--</script>-->
   </head>
   <body>
-    <div id="sync-confirm" class="hidden">
-      <header>Sync Confirm</header>
-      <article></article>
-      <footer>
-        <button onclick="resetTasks()">Reset</button>
-        <button onclick="confirmSync()">Confirm</button>
-      </footer>
-    </div>
-    <div id="main">
-      <div id="connection-status" class="offline">
-        <span></span>
+    <div id="app" v-cloak>
+      <div v-if="mode === 'sync-confirm'">
+        <header>Sync Confirm</header>
+        <article>
+          <section
+            :class="{ done: isDone }"
+            v-for="{ text, isDone } in syncDryRunTasks"
+          >
+          <span>{{ text }}</span>
+          </section>
+        </article>
+        <footer>
+          <button type="button" @click="resetTasks">Reset</button>
+          <button type="button" @click="confirmSync">Confirm</button>
+        </footer>
       </div>
-      <article id="tasks"></article>
-      <form id="edit">
-        <input id="new-task" type="text" autocomplete="off" />
-      </form>
+      <div v-if="mode === 'main'">
+        <div id="connection-status" :class="{ online: isOnline }">
+          <span></span>
+        </div>
+        <article>
+          <section
+            @click="toggleOpacity"
+            :class="{ done: isDone }"
+            v-for="{ taskNo, text, isDone } in tasksWithNo"
+          >
+            <button
+              class="move2top"
+              type="button"
+              @click.stop="move2top(taskNo)"
+            >
+              {{ taskNo }}
+            </button>
+            <span>{{ text }}</span>
+            <button
+              class="toggle-done"
+              type="button"
+              @click.stop="toggleDone(taskNo, isDone)"
+            ></button>
+          </section>
+        </article>
+        <form @submit.prevent="addTask">
+          <input v-model="newTaskText" type="text" autocomplete="off" />
+        </form>
+      </div>
     </div>
     <script type="module" src="app.js"></script>
   </body>

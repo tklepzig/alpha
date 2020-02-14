@@ -1,199 +1,151 @@
+import Vue from "https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.esm.browser.js";
 import { createTask } from "./common.js";
-
-let isOnline = false;
-let isWaitingForSyncConfirmation = false;
-
-const renderSyncDryRunResult = tasks => {
-  const sections = tasks.map(
-    ({ text, isDone }) =>
-      `<section class="${isDone ? "done" : ""}">
-          <span>${text}</span>
-        </section>`
-  );
-
-  document.querySelector("#sync-confirm > article").innerHTML = sections.join(
-    ""
-  );
-};
-
-const render = tasks => {
-  const sections = tasks.map(
-    ({ taskNo, text, isDone }) =>
-      `<section class="${isDone ? "done" : ""}" onclick="toggleOpacity(this)">
-          <button class="move2top" onclick="move2top(${taskNo}, event)">${taskNo}</button>
-          <span>${text}</span>
-          <button class="toggle-done" onclick="toggleDone(${taskNo}, ${isDone}, event)" />
-        </section>`
-  );
-
-  document.getElementById("tasks").innerHTML = sections.join("");
-};
-
-document.getElementById("edit").addEventListener("submit", e => {
-  e.preventDefault();
-  const input = document.getElementById("new-task");
-  addTask(input.value).then(() => {
-    input.value = "";
-  });
-  return false;
-});
 
 const readTasks = () => {
   const raw = localStorage.getItem("alpha-tasks");
   return raw === null ? [] : JSON.parse(raw);
-};
-const renderTasks = () => {
-  render(readTasks().map((task, i) => ({ ...task, taskNo: i + 1 })));
 };
 
 const writeTasks = tasks => {
   localStorage.setItem("alpha-tasks", JSON.stringify(tasks));
 };
 
-const addTask = async text => {
-  if (!text) return Promise.resolve();
-  if (isOnline) {
-    return fetch("/append", {
-      method: "post",
-      body: `task=${text}`,
-      headers: { "Content-type": "application/x-www-form-urlencoded" }
-    }).then(() => {
-      window.scrollTo(0, document.body.scrollHeight);
-    });
-  }
+new Vue({
+  el: "#app",
+  data: {
+    tasks: [],
+    syncDryRunTasks: [],
+    isOnline: false,
+    isWaitingForSyncConfirmation: false,
+    newTaskText: "",
+    mode: "main"
+  },
+  computed: {
+    tasksWithNo() {
+      return this.tasks.map((task, i) => ({ ...task, taskNo: i + 1 }));
+    }
+  },
+  methods: {
+    onOpen() {
+      this.syncDryRun().then(newTasksFromClient => {
+        if (newTasksFromClient.length === 0) {
+          this.sync(this.tasks);
+          return;
+        }
 
-  writeTasks([...readTasks(), createTask(text)]);
-  window.scrollTo(0, document.body.scrollHeight);
-  renderTasks();
-};
-
-const move2top = async (taskNo, e) => {
-  e.stopPropagation();
-  if (isOnline) {
-    return fetch(`/move2top`, {
-      method: "post",
-      body: `taskNo=${taskNo}`,
-      headers: { "Content-type": "application/x-www-form-urlencoded" }
-    });
-  }
-
-  writeTasks(
-    readTasks().reduce((result, task, i) => {
-      if (i + 1 === parseInt(taskNo)) {
-        result.unshift(task);
-      } else {
-        result.push(task);
+        this.isWaitingForSyncConfirmation = true;
+        this.mode = "sync-confirm";
+        this.syncDryRunTasks = newTasksFromClient;
+      });
+    },
+    onMessage(message) {
+      if (this.isWaitingForSyncConfirmation) {
+        return;
       }
-      return result;
-    }, [])
-  );
-  renderTasks();
-};
-window.move2top = move2top;
+      this.tasks = JSON.parse(message.data);
+      writeTasks(this.tasks);
+    },
+    onClose() {
+      this.isOnline = false;
+      setTimeout(() => {
+        this.connect();
+      }, 3000);
+    },
+    async addTask() {
+      const text = this.newTaskText;
+      if (!text) return Promise.resolve();
+      if (this.isOnline) {
+        return fetch("/append", {
+          method: "post",
+          body: `task=${text}`,
+          headers: { "Content-type": "application/x-www-form-urlencoded" }
+        }).then(() => {
+          this.newTaskText = "";
+          window.scrollTo(0, document.body.scrollHeight);
+        });
+      }
 
-const toggleDone = async (taskNo, isDone, e) => {
-  e.stopPropagation();
+      this.tasks = [...this.tasks, createTask(text)];
+      writeTasks(this.tasks);
+      window.scrollTo(0, document.body.scrollHeight);
+    },
+    async toggleDone(taskNo, isDone) {
+      if (this.isOnline) {
+        return fetch(`/${isDone ? "undone" : "done"}`, {
+          method: "post",
+          body: `taskNo=${taskNo}`,
+          headers: { "Content-type": "application/x-www-form-urlencoded" }
+        });
+      }
 
-  if (isOnline) {
-    return fetch(`/${isDone ? "undone" : "done"}`, {
-      method: "post",
-      body: `taskNo=${taskNo}`,
-      headers: { "Content-type": "application/x-www-form-urlencoded" }
-    });
+      this.tasks = this.tasks.map((task, i) =>
+        i + 1 === parseInt(taskNo) ? { ...task, isDone: !isDone } : task
+      );
+      writeTasks(this.tasks);
+    },
+    async move2top(taskNo) {
+      if (this.isOnline) {
+        return fetch(`/move2top`, {
+          method: "post",
+          body: `taskNo=${taskNo}`,
+          headers: { "Content-type": "application/x-www-form-urlencoded" }
+        });
+      }
+
+      this.tasks = this.tasks.reduce((result, task, i) => {
+        if (i + 1 === parseInt(taskNo)) {
+          result.unshift(task);
+        } else {
+          result.push(task);
+        }
+        return result;
+      }, []);
+      writeTasks(this.tasks);
+    },
+    toggleOpacity(e) {
+      e.target.closest("section").classList.toggle("fade");
+    },
+    async sync(tasks) {
+      await fetch(`/sync`, {
+        method: "POST",
+        body: JSON.stringify(tasks),
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        }
+      });
+      this.isOnline = true;
+    },
+    async syncDryRun() {
+      const res = await fetch(`/sync-dry-run`, {
+        method: "POST",
+        body: JSON.stringify(this.tasks),
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        }
+      });
+      return await res.json();
+    },
+    async resetTasks() {
+      this.isWaitingForSyncConfirmation = false;
+      await this.sync([]);
+      this.mode = "main";
+    },
+    async confirmSync() {
+      this.isWaitingForSyncConfirmation = false;
+      await this.sync(this.tasks);
+      this.mode = "main";
+    },
+    connect() {
+      const ws = new WebSocket(`ws://localhost:3003`);
+      ws.onopen = this.onOpen;
+      ws.onmessage = this.onMessage;
+      ws.onclose = this.onClose;
+    }
+  },
+  created() {
+    this.tasks = readTasks();
+    this.connect();
   }
-
-  writeTasks(
-    readTasks().map((task, i) =>
-      i + 1 === parseInt(taskNo) ? { ...task, isDone: !isDone } : task
-    )
-  );
-  renderTasks();
-};
-window.toggleDone = toggleDone;
-
-const toggleOpacity = element => {
-  element.classList.toggle("fade");
-};
-window.toggleOpacity = toggleOpacity;
-
-const sync = tasks =>
-  fetch(`/sync`, {
-    method: "POST",
-    body: JSON.stringify(tasks),
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json"
-    }
-  }).then(() => {
-    document.getElementById("connection-status").classList.add("online");
-    document.getElementById("connection-status").classList.remove("offline");
-    isOnline = true;
-  });
-
-const syncDryRun = () =>
-  fetch(`/sync-dry-run`, {
-    method: "POST",
-    body: JSON.stringify(readTasks()),
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json"
-    }
-  }).then(res => res.json());
-
-const resetTasks = () => {
-  isWaitingForSyncConfirmation = false;
-  sync([]).then(() => {
-    document.getElementById("main").classList.remove("hidden");
-    document.getElementById("sync-confirm").classList.add("hidden");
-  });
-};
-window.resetTasks = resetTasks;
-
-const confirmSync = () => {
-  isWaitingForSyncConfirmation = false;
-  sync(readTasks()).then(() => {
-    document.getElementById("main").classList.remove("hidden");
-    document.getElementById("sync-confirm").classList.add("hidden");
-  });
-};
-window.confirmSync = confirmSync;
-
-const connect = () => {
-  const ws = new WebSocket(`ws://${window.location.host}`);
-  ws.onopen = onOpen;
-  ws.onmessage = onMessage;
-  ws.onclose = onClose;
-};
-
-const onOpen = () => {
-  syncDryRun().then(newTasksFromClient => {
-    if (newTasksFromClient.length === 0) {
-      sync(readTasks());
-      return;
-    }
-
-    isWaitingForSyncConfirmation = true;
-    document.getElementById("main").classList.add("hidden");
-    document.getElementById("sync-confirm").classList.remove("hidden");
-    renderSyncDryRunResult(newTasksFromClient);
-  });
-};
-
-const onMessage = ({ data: tasks }) => {
-  if (isWaitingForSyncConfirmation) {
-    return;
-  }
-  writeTasks(JSON.parse(tasks));
-  renderTasks();
-};
-const onClose = () => {
-  document.getElementById("connection-status").classList.remove("online");
-  document.getElementById("connection-status").classList.add("offline");
-  isOnline = false;
-  setTimeout(() => {
-    connect();
-  }, 3000);
-};
-
-renderTasks();
-connect();
+});
