@@ -124,7 +124,7 @@ article > section > button {
   font-size: inherit;
   color: inherit;
 }
-article > section.hidden > button {
+article > section.fade > button {
   pointer-events: none;
 }
 article > section > button.move2top {
