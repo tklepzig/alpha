@@ -1,7 +1,7 @@
 import { createTask } from "./common.js";
 
-const threeDaysInMs = 3 * 24 * 60 * 60 * 1000;
 let isOnline = false;
+let isWaitingForSyncConfirmation = false;
 
 const renderSyncDryRunResult = tasks => {
   const sections = tasks.map(
@@ -141,6 +141,7 @@ const syncDryRun = () =>
   }).then(res => res.json());
 
 const resetTasks = () => {
+  isWaitingForSyncConfirmation = false;
   sync([]).then(() => {
     document.getElementById("main").classList.remove("hidden");
     document.getElementById("sync-confirm").classList.add("hidden");
@@ -149,6 +150,7 @@ const resetTasks = () => {
 window.resetTasks = resetTasks;
 
 const confirmSync = () => {
+  isWaitingForSyncConfirmation = false;
   sync(readTasks()).then(() => {
     document.getElementById("main").classList.remove("hidden");
     document.getElementById("sync-confirm").classList.add("hidden");
@@ -164,32 +166,25 @@ const connect = () => {
 };
 
 const onOpen = () => {
-  const now = new Date().toISOString();
-  const lastSync = localStorage.getItem("alpha-last-sync") || now;
-  if (new Date(now).getTime() - new Date(lastSync).getTime() <= threeDaysInMs) {
-    sync(readTasks());
-    return;
-  }
-
-  syncDryRun().then(tasks => {
-    if (tasks.length === 0) {
+  syncDryRun().then(newTasksFromClient => {
+    if (newTasksFromClient.length === 0) {
       sync(readTasks());
       return;
     }
 
+    isWaitingForSyncConfirmation = true;
     document.getElementById("main").classList.add("hidden");
     document.getElementById("sync-confirm").classList.remove("hidden");
-    renderSyncDryRunResult(tasks);
+    renderSyncDryRunResult(newTasksFromClient);
   });
 };
 
 const onMessage = ({ data: tasks }) => {
-  writeTasks(JSON.parse(tasks));
-  localStorage.setItem("alpha-last-sync", new Date().toISOString());
-  const hiddenTasks = document.querySelectorAll("section.hidden");
-  if (hiddenTasks.length === 0) {
-    renderTasks();
+  if (isWaitingForSyncConfirmation) {
+    return;
   }
+  writeTasks(JSON.parse(tasks));
+  renderTasks();
 };
 const onClose = () => {
   document.getElementById("connection-status").classList.remove("online");

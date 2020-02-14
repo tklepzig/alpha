@@ -7,7 +7,7 @@ import YAML from "yaml";
 import { EOL as eol } from "os";
 import WebSocket from "ws";
 import { createTask } from "./public/common.js";
-//
+
 // Necessary due to type module is enabled: https://stackoverflow.com/a/50052194
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -25,8 +25,17 @@ const readTasks = async () => {
   return YAML.parse(fileContent);
 };
 
-const writeTasks = tasks =>
-  fs.writeFile(tasksFilePath, YAML.stringify(tasks), "utf-8");
+const writeTasks = async tasks => {
+  await fs.writeFile(tasksFilePath, YAML.stringify(tasks), "utf-8");
+
+  if (socket) {
+    socket.clients.forEach(client => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(tasks));
+      }
+    });
+  }
+};
 
 const append = async text => {
   const tasks = await readTasks();
@@ -51,9 +60,7 @@ const done = async taskNo => {
   const tasks = await readTasks();
   return writeTasks(
     tasks.map((task, i) =>
-      i + 1 === parseInt(taskNo)
-        ? { ...task, isDone: true, lastModified: new Date().toISOString() }
-        : task
+      i + 1 === parseInt(taskNo) ? { ...task, isDone: true } : task
     )
   );
 };
@@ -62,9 +69,7 @@ const undone = async taskNo => {
   const tasks = await readTasks();
   return writeTasks(
     tasks.map((task, i) =>
-      i + 1 === parseInt(taskNo)
-        ? { ...task, isDone: false, lastModified: new Date().toISOString() }
-        : task
+      i + 1 === parseInt(taskNo) ? { ...task, isDone: false } : task
     )
   );
 };
@@ -74,27 +79,14 @@ const clear = async () => {
   return writeTasks(tasks.filter(task => !task.isDone));
 };
 
-const removeDuplicates = tasks => {
-  const result = [];
-  tasks.forEach(task => {
-    if (!result.includes(task)) {
-      const duplicates = tasks.filter(
-        t => t.id === task.id && t.text === task.text
-      );
-      if (duplicates.length === 1) {
-        result.push(task);
-      } else {
-        result.push(
-          duplicates.sort((a, b) =>
-            a.lastModified < b.lastModified ? 1 : -1
-          )[0]
-        );
-      }
-    }
-  });
-
-  return result;
-};
+const removeDuplicates = tasks =>
+  tasks.reduce(
+    (uniqueTasks, task) =>
+      uniqueTasks.find(t => t.id === task.id && t.text === task.text)
+        ? uniqueTasks
+        : [...uniqueTasks, task],
+    []
+  );
 
 const syncDryRun = async clientTasks => {
   const serverTasks = await readTasks();
@@ -124,15 +116,6 @@ const markdown = async () => {
     .join(eol);
 };
 
-const broadcastTasks = async () => {
-  const tasks = await readTasks();
-  socket.clients.forEach(client => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify(tasks));
-    }
-  });
-};
-
 const start = async () => {
   const tasksFileExists = await fs.pathExists(tasksFilePath);
   if (!tasksFileExists) {
@@ -141,34 +124,28 @@ const start = async () => {
 
   app.get("/u/:taskNo", async (req, res) => {
     await undone(req.params.taskNo);
-    await broadcastTasks();
     return res.redirect("/");
   });
   app.post("/undone", async (req, res) => {
     await undone(req.body.taskNo);
-    await broadcastTasks();
     return res.sendStatus(200);
   });
 
   app.get("/d/:taskNo", async (req, res) => {
     await done(req.params.taskNo);
-    await broadcastTasks();
     return res.redirect("/");
   });
   app.post("/done", async (req, res) => {
     await done(req.body.taskNo);
-    await broadcastTasks();
     return res.sendStatus(200);
   });
 
   app.get("/t/:taskNo", async (req, res) => {
     await move2top(req.params.taskNo);
-    await broadcastTasks();
     return res.redirect("/");
   });
   app.post("/move2top", async (req, res) => {
     await move2top(req.body.taskNo);
-    await broadcastTasks();
     return res.sendStatus(200);
   });
 
@@ -178,7 +155,6 @@ const start = async () => {
       return res.sendStatus(403);
     }
     await clear();
-    await broadcastTasks();
     return res.redirect("/");
   });
   app.post("/clear", async (req, res) => {
@@ -187,18 +163,15 @@ const start = async () => {
       return res.sendStatus(403);
     }
     await clear();
-    await broadcastTasks();
     return res.sendStatus(200);
   });
 
   app.get("/a/:task", async (req, res) => {
     await append(req.params.task);
-    await broadcastTasks();
     return res.redirect("/");
   });
   app.post("/append", async (req, res) => {
     await append(req.body.task);
-    await broadcastTasks();
     return res.sendStatus(200);
   });
 
@@ -208,7 +181,6 @@ const start = async () => {
 
   app.post("/sync", async (req, res) => {
     await sync(req.body);
-    await broadcastTasks();
     return res.sendStatus(200);
   });
 

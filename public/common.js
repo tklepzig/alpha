@@ -11,6 +11,5 @@ const generateGuid = () => {
 export const createTask = text => ({
   text,
   isDone: false,
-  id: generateGuid(),
-  lastModified: new Date().toISOString()
+  id: generateGuid()
 });
