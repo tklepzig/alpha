@@ -79,6 +79,33 @@ const clear = async () => {
   return writeTasks(tasks.filter(task => !task.isDone));
 };
 
+const syncDryRun = async clientTasks => {
+  const serverTasks = await readTasks();
+  const changedTasksFromClient = [];
+  const newTasksFromClient = [];
+  clientTasks.forEach(clientTask => {
+    if (
+      !serverTasks.find(
+        serverTask =>
+          serverTask.id === clientTask.id && serverTask.text === clientTask.text
+      )
+    ) {
+      newTasksFromClient.push(clientTask);
+    } else if (
+      serverTasks.find(
+        serverTask =>
+          serverTask.id === clientTask.id &&
+          serverTask.text === clientTask.text &&
+          serverTask.isDone !== clientTask.isDone
+      )
+    ) {
+      changedTasksFromClient.push(clientTask);
+    }
+  });
+
+  return { changedTasks: changedTasksFromClient, newTasks: newTasksFromClient };
+};
+
 const removeDuplicates = tasks =>
   tasks.reduce(
     (uniqueTasks, task) =>
@@ -87,18 +114,6 @@ const removeDuplicates = tasks =>
         : [...uniqueTasks, task],
     []
   );
-
-const syncDryRun = async clientTasks => {
-  const serverTasks = await readTasks();
-  const newTasksFromClient = clientTasks.filter(
-    clientTask =>
-      !serverTasks.find(
-        serverTask =>
-          serverTask.id === clientTask.id && serverTask.text === clientTask.text
-      )
-  );
-  return newTasksFromClient;
-};
 
 const sync = async clientTasks => {
   const serverTasks = await readTasks();

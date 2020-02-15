@@ -28,10 +28,20 @@
     <div id="app" v-cloak>
       <div v-if="mode === 'sync-confirm'">
         <header>Sync Confirm</header>
+        <header v-if="syncDryRunChangedTasks.length > 0">Changed Tasks</header>
         <article>
           <section
             :class="{ done: isDone }"
-            v-for="{ text, isDone } in syncDryRunTasks"
+            v-for="{ text, isDone } in syncDryRunChangedTasks"
+          >
+          <span>{{ text }}</span>
+          </section>
+        </article>
+        <header v-if="syncDryRunNewTasks.length > 0">New Tasks</header>
+        <article>
+          <section
+            :class="{ done: isDone }"
+            v-for="{ text, isDone } in syncDryRunNewTasks"
           >
           <span>{{ text }}</span>
           </section>

@@ -27,15 +27,16 @@ new Vue({
   },
   methods: {
     onOpen() {
-      this.syncDryRun().then(newTasksFromClient => {
-        if (newTasksFromClient.length === 0) {
+      this.syncDryRun().then(({ changedTasks, newTasks }) => {
+        if (changedTasks.length === 0 && newTasks.length === 0) {
           this.sync(this.tasks);
           return;
         }
 
         this.isWaitingForSyncConfirmation = true;
         this.mode = "sync-confirm";
-        this.syncDryRunTasks = newTasksFromClient;
+        this.syncDryRunChangedTasks = changedTasks;
+        this.syncDryRunNewTasks = newTasks;
       });
     },
     onMessage(message) {
@@ -67,6 +68,7 @@ new Vue({
 
       this.tasks = [...this.tasks, createTask(text)];
       writeTasks(this.tasks);
+      this.newTaskText = "";
       window.scrollTo(0, document.body.scrollHeight);
     },
     async toggleDone(taskNo, isDone) {
@@ -138,7 +140,7 @@ new Vue({
       this.mode = "main";
     },
     connect() {
-      const ws = new WebSocket(`ws://localhost:3003`);
+      const ws = new WebSocket(`ws://${window.location.host}`);
       ws.onopen = this.onOpen;
       ws.onmessage = this.onMessage;
       ws.onclose = this.onClose;
