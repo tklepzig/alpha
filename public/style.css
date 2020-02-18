@@ -53,6 +53,10 @@ body > div {
   grid-column: 2;
 }
 
+body > div[v-cloak] > div {
+  display: none;
+}
+
 .hidden {
   display: none;
 }
@@ -109,7 +113,7 @@ article > section.fade {
   opacity: 0.2;
 }
 article > section > span {
-  padding: 0.65rem 1rem;
+  padding: 0.5rem 1rem;
 }
 article > section > button {
   border: none;
