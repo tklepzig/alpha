@@ -104,9 +104,6 @@ new Vue({
       }, []);
       writeTasks(this.tasks);
     },
-    toggleOpacity(e) {
-      e.target.closest("section").classList.toggle("fade");
-    },
     async sync(tasks) {
       await fetch(`/sync`, {
         method: "POST",

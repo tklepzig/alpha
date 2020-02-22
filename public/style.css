@@ -74,17 +74,13 @@ article > section {
   margin: 0.5rem 1rem;
   background: hsl(var(--task), var(--l-base));
   box-shadow: 0 0 10px 2px rgba(15, 15, 15, 0.6);
-  cursor: pointer;
   transition: opacity 0.2s ease-in-out;
   word-break: break-all;
 }
 article > section.done {
   text-decoration: line-through;
-  color: hsla(var(--fg), 0.6);
-  opacity: 0.6;
-}
-article > section.fade {
-  opacity: 0.2;
+  color: hsla(var(--fg), 0.5);
+  opacity: 0.5;
 }
 article > section > span {
   padding: 0.5rem 1rem;
@@ -98,9 +94,6 @@ article > section > button {
   font-family: inherit;
   font-size: inherit;
   color: inherit;
-}
-article > section.fade > button {
-  pointer-events: none;
 }
 article > section > button.move2top {
   background: transparent;
