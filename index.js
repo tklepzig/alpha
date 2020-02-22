@@ -7,6 +7,7 @@ import YAML from "yaml";
 import { EOL as eol } from "os";
 import WebSocket from "ws";
 import { createTask } from "./public/common.js";
+import fetch from "node-fetch";
 
 // Necessary due to type module is enabled: https://stackoverflow.com/a/50052194
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -205,6 +206,21 @@ const start = async () => {
 
   app.get("/md", async (_, res) => {
     return res.send(await markdown());
+  });
+
+  app.get("/website-title", async (req, res) => {
+    const response = await fetch(req.query.url);
+    const html = await response.text();
+
+    try {
+      var title = html
+        .split("</head>")[0]
+        .split("<title>")[1]
+        .split("</title>")[0];
+      res.send(title);
+    } catch {
+      res.sendStatus(500);
+    }
   });
 
   app.use(express.static(path.resolve(__dirname, "public")));

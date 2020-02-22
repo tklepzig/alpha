@@ -39,12 +39,30 @@ new Vue({
         this.syncDryRunNewTasks = newTasks;
       });
     },
-    onMessage(message) {
+    async onMessage(message) {
       if (this.isWaitingForSyncConfirmation) {
         return;
       }
       this.tasks = JSON.parse(message.data);
       writeTasks(this.tasks);
+
+      //TODO: cache into localStorage
+      const tasksWithTitle = await Promise.all(
+        this.tasks
+          .filter(task => task.text.startsWith("http"))
+          .map(async task => {
+            const res = await fetch(
+              `/website-title?url=${encodeURIComponent(task.text)}`
+            );
+            const title = await res.text();
+            return { ...task, link: task.text, text: title };
+          })
+      );
+      this.tasks = this.tasks.map(
+        task =>
+          tasksWithTitle.find(taskWithTitle => taskWithTitle.id === task.id) ||
+          task
+      );
     },
     onClose() {
       this.isOnline = false;

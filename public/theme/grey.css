@@ -1,4 +1,5 @@
 :root {
-  --task: 0, 0%;
+  --h-base: 210;
+  --s-base: 0%;
   --l-base: 18.75%;
 }

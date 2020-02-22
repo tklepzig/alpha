@@ -34,7 +34,7 @@
             :class="{ done: isDone }"
             v-for="{ text, isDone } in syncDryRunChangedTasks"
           >
-          <span>{{ text }}</span>
+            <span>{{ text }}</span>
           </section>
         </article>
         <header v-if="syncDryRunNewTasks.length > 0">New Tasks</header>
@@ -43,7 +43,7 @@
             :class="{ done: isDone }"
             v-for="{ text, isDone } in syncDryRunNewTasks"
           >
-          <span>{{ text }}</span>
+            <span>{{ text }}</span>
           </section>
         </article>
         <footer>
@@ -58,7 +58,7 @@
         <article>
           <section
             :class="{ done: isDone }"
-            v-for="{ taskNo, text, isDone } in tasksWithNo"
+            v-for="{ taskNo, text, isDone, link } in tasksWithNo"
           >
             <button
               class="move2top"
@@ -67,7 +67,10 @@
             >
               {{ taskNo }}
             </button>
-            <span>{{ text }}</span>
+            <span>
+              <a target="_blank" :href="link" v-if="link">{{ text }}</a>
+              <template v-else>{{ text }}</template>
+            </span>
             <button
               class="toggle-done"
               type="button"

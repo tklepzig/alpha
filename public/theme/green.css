@@ -1,4 +1,5 @@
 :root {
-  --task: 80, 50%;
+  --h-base: 80;
+  --s-base: 50%;
   --l-base: 20%;
 }
