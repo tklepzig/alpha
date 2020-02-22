@@ -1,35 +1,9 @@
+@import "./theme/green.css";
+
 :root {
   --bg: 0, 0%;
   --fg: 0, 0%, 80%;
   --border-radius: 0.15rem;
-
-  /* grey */
-  /*
-  --task: 0, 0%;
-  --l-base: 18.75%;
-   */
-  /* green */
-  /*
-  --task: 80, 50%;
-  --l-base: 20%;
-   */
-  /* lime */
-  /*
-  --task: 70, 45%;
-  --l-base: 22%;
-   */
-  /* blue */
-  /*
-  --task: 210, 40%;
-  --l-base: 20%;
-   */
-  /* red */
-  /*
-  --task: 360, 55%;
-  --l-base: 22%;
-   */
-  --task: 70, 45%;
-  --l-base: 20%;
 }
 html {
   font-size: 18px;
