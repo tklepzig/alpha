@@ -14,15 +14,31 @@ new Vue({
   el: "#app",
   data: {
     tasks: [],
-    syncDryRunTasks: [],
+    cachedTitles: [],
+    syncDryRunChangedTasks: [],
+    syncDryRunNewTasks: [],
     isOnline: false,
     isWaitingForSyncConfirmation: false,
     newTaskText: "",
     mode: "main"
   },
   computed: {
-    tasksWithNo() {
-      return this.tasks.map((task, i) => ({ ...task, taskNo: i + 1 }));
+    enrichedTasks() {
+      return this.tasks.map((task, i) => {
+        const taskNo = i + 1;
+        const taskWithTitle = this.cachedTitles.find(
+          ({ id }) => id === task.id
+        );
+        if (taskWithTitle) {
+          return {
+            ...task,
+            taskNo,
+            link: task.text,
+            text: taskWithTitle.text
+          };
+        }
+        return { ...task, taskNo };
+      });
     }
   },
   methods: {
@@ -39,30 +55,38 @@ new Vue({
         this.syncDryRunNewTasks = newTasks;
       });
     },
+    async updateTitleCache(tasks) {
+      //TODO: delete not anymore task entries from the title cache
+      const newTitles = await Promise.all(
+        tasks
+          .filter(({ text }) => text.startsWith("http"))
+          .filter(task => !this.cachedTitles.find(({ id }) => task.id === id))
+          .map(async ({ id, text }) => {
+            const res = await fetch(
+              `/website-title?url=${encodeURIComponent(text)}`
+            );
+            const title = await res.text();
+            return { id, text: title };
+          })
+      );
+
+      if (newTitles.length > 0) {
+        const updatedCache = [...this.cachedTitles, ...newTitles];
+        localStorage.setItem(
+          "alpha-cached-titles",
+          JSON.stringify(updatedCache)
+        );
+        this.cachedTitles = updatedCache;
+      }
+    },
     async onMessage(message) {
       if (this.isWaitingForSyncConfirmation) {
         return;
       }
-      this.tasks = JSON.parse(message.data);
-      writeTasks(this.tasks);
-
-      //TODO: cache into localStorage
-      const tasksWithTitle = await Promise.all(
-        this.tasks
-          .filter(task => task.text.startsWith("http"))
-          .map(async task => {
-            const res = await fetch(
-              `/website-title?url=${encodeURIComponent(task.text)}`
-            );
-            const title = await res.text();
-            return { ...task, link: task.text, text: title };
-          })
-      );
-      this.tasks = this.tasks.map(
-        task =>
-          tasksWithTitle.find(taskWithTitle => taskWithTitle.id === task.id) ||
-          task
-      );
+      const tasks = JSON.parse(message.data);
+      writeTasks(tasks);
+      this.tasks = tasks;
+      this.updateTitleCache(tasks);
     },
     onClose() {
       this.isOnline = false;
@@ -162,6 +186,9 @@ new Vue({
     }
   },
   created() {
+    const cachedTitlesRaw = localStorage.getItem("alpha-cached-titles");
+    this.cachedTitles =
+      cachedTitlesRaw !== null ? JSON.parse(cachedTitlesRaw) : [];
     this.tasks = readTasks();
     this.connect();
   }

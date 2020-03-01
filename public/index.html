@@ -58,7 +58,7 @@
         <article>
           <section
             :class="{ done: isDone }"
-            v-for="{ taskNo, text, isDone, link } in tasksWithNo"
+            v-for="{ taskNo, text, isDone, link } in enrichedTasks"
           >
             <button
               class="move2top"
