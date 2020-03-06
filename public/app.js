@@ -43,16 +43,16 @@ new Vue({
   },
   methods: {
     onOpen() {
-      this.syncDryRun().then(({ changedTasks, newTasks }) => {
-        if (changedTasks.length === 0 && newTasks.length === 0) {
-          this.sync(this.tasks);
-          return;
-        }
-
+      this.syncDryRun().then(serverTasks => {
+        //if (changedTasks.length === 0 && newTasks.length === 0) {
+        //this.sync(this.tasks);
+        //return;
+        //}
+        console.dir(serverTasks);
         this.isWaitingForSyncConfirmation = true;
         this.mode = "sync-confirm";
-        this.syncDryRunChangedTasks = changedTasks;
-        this.syncDryRunNewTasks = newTasks;
+        this.syncDryRunChangedTasks = this.tasks;
+        //this.syncDryRunNewTasks = newTasks;
       });
     },
     async updateTitleCache(tasks) {
@@ -158,7 +158,7 @@ new Vue({
       this.isOnline = true;
     },
     async syncDryRun() {
-      const res = await fetch(`/sync-dry-run`, {
+      const res = await fetch(`/sync`, {
         method: "POST",
         body: JSON.stringify(this.tasks),
         headers: {

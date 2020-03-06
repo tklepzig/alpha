@@ -80,11 +80,10 @@ const clear = async () => {
   return writeTasks(tasks.filter(task => !task.isDone));
 };
 
-const syncDryRun = async clientTasks => {
-  const serverTasks = await readTasks();
+const hasConflicts = async (clientTasks, serverTasks) => {
   const changedTasksFromClient = [];
   const newTasksFromClient = [];
-  clientTasks.forEach(clientTask => {
+  clientTasks.forEach((clientTask, i) => {
     if (
       !serverTasks.find(
         serverTask =>
@@ -98,13 +97,13 @@ const syncDryRun = async clientTasks => {
           serverTask.id === clientTask.id &&
           serverTask.text === clientTask.text &&
           serverTask.isDone !== clientTask.isDone
-      )
+      ) ||
+      serverTasks[i].id !== clientTask.id
     ) {
       changedTasksFromClient.push(clientTask);
     }
   });
-
-  return { changedTasks: changedTasksFromClient, newTasks: newTasksFromClient };
+  return changedTasksFromClient.length > 0 || newTasksFromClient.length > 0;
 };
 
 const removeDuplicates = tasks =>
@@ -120,6 +119,18 @@ const sync = async clientTasks => {
   const serverTasks = await readTasks();
   const uniqueTasks = removeDuplicates([...clientTasks, ...serverTasks]);
   await writeTasks(uniqueTasks);
+};
+
+const sync2 = async clientTasks => {
+  const serverTasks = await readTasks();
+
+  if (await hasConflicts(clientTasks, serverTasks)) {
+    return serverTasks;
+  }
+
+  //const uniqueTasks = removeDuplicates([...clientTasks, ...serverTasks]);
+  //await writeTasks(uniqueTasks);
+  return undefined;
 };
 
 const markdown = async () => {
@@ -195,13 +206,20 @@ const start = async () => {
     return res.send(await readTasks());
   });
 
-  app.post("/sync", async (req, res) => {
-    await sync(req.body);
-    return res.sendStatus(200);
-  });
+  //app.post("/sync", async (req, res) => {
+  //await sync(req.body);
+  //return res.sendStatus(200);
+  //});
 
-  app.post("/sync-dry-run", async (req, res) => {
-    return res.send(await syncDryRun(req.body));
+  //app.post("/sync-dry-run", async (req, res) => {
+  //return res.send(await syncDryRun(req.body));
+  //});
+
+  app.post("/sync", async (req, res) => {
+    const ret = await sync2(req.body);
+    if (ret) return res.status(409).send(ret);
+
+    return res.sendStatus(200);
   });
 
   app.get("/md", async (_, res) => {
