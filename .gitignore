@@ -1,2 +1,5 @@
 node_modules/
 tasks.yaml
+certificates/*
+!certificates/Makefile
+!certificates/*.sh

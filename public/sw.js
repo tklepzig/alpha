@@ -1,11 +1,5 @@
-var CACHE_NAME = "alpha-cache-2020-02-07";
-var urlsToCache = [
-  "/",
-  "/style.css",
-  "/sw.js",
-  "/common.js",
-  "/script.js",
-];
+var CACHE_NAME = "alpha-cache-2020-03-13";
+var urlsToCache = ["/", "/style.css", "/sw.js", "/common.js", "/app.js"];
 
 self.addEventListener("install", function(event) {
   event.waitUntil(

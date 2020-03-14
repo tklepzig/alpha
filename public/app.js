@@ -179,7 +179,10 @@ new Vue({
       this.mode = "main";
     },
     connect() {
-      const ws = new WebSocket(`ws://${window.location.host}`);
+      const webSocketProtocol = location.protocol === "https:" ? "wss" : "ws";
+      const ws = new WebSocket(
+        `${webSocketProtocol}://${window.location.host}`
+      );
       ws.onopen = this.onOpen;
       ws.onmessage = this.onMessage;
       ws.onclose = this.onClose;

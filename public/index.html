@@ -16,13 +16,13 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" type="text/css" href="/style.css" />
-    <!--<script>-->
-    <!--if ("serviceWorker" in navigator) {-->
-    <!--window.addEventListener("load", function() {-->
-    <!--navigator.serviceWorker.register("sw.js");-->
-    <!--});-->
-    <!--}-->
-    <!--</script>-->
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function() {
+          navigator.serviceWorker.register("sw.js");
+        });
+      }
+    </script>
   </head>
   <body class="lime">
     <div id="app" v-cloak>

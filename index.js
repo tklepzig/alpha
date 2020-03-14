@@ -9,6 +9,9 @@ import WebSocket from "ws";
 import { createTask } from "./public/common.js";
 import fetch from "node-fetch";
 
+import http from "http";
+import https from "https";
+
 // Necessary due to type module is enabled: https://stackoverflow.com/a/50052194
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -17,7 +20,9 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+const certificateDomain = "devpad";
 const port = 3003;
+const sslPort = port + 1;
 const onlyLocalDelete = true;
 const tasksFilePath = path.resolve(__dirname, "tasks.yaml");
 
@@ -228,10 +233,34 @@ const start = async () => {
     return res.sendFile(path.resolve(__dirname, "public", "index.html"));
   });
 
-  const server = app.listen(port, () => {
+  var privateKey = fs.readFileSync(
+    path.resolve(__dirname, `certificates/${certificateDomain}.key`),
+    "utf8"
+  );
+  var certificate = fs.readFileSync(
+    path.resolve(__dirname, `certificates/${certificateDomain}.crt`),
+    "utf8"
+  );
+
+  const httpServer = http.createServer(app);
+  const httpsServer = https.createServer(
+    { key: privateKey, cert: certificate },
+    app
+  );
+  httpServer.listen(port, () => {
     console.log(`Listening on port ${port}`);
   });
-  socket = new WebSocket.Server({ server });
+  httpsServer.listen(sslPort, () => {
+    console.log(`Listening on ssl port ${sslPort}`);
+  });
+  socket = new WebSocket.Server({ noServer: true });
+
+  httpServer.on("upgrade", (req, sock, head) => {
+    socket.handleUpgrade(req, sock, head, ws => socket.emit("connection", ws));
+  });
+  httpsServer.on("upgrade", (req, sock, head) => {
+    socket.handleUpgrade(req, sock, head, ws => socket.emit("connection", ws));
+  });
 };
 
 start();
