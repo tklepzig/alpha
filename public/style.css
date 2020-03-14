@@ -1,10 +1,36 @@
-@import "./theme/lime.css";
-
 :root {
   --bg: 0, 0%;
   --fg: 0, 0%, 80%;
   --border-radius: 0.15rem;
+  --h-base: 210;
+  --s-base: 0%;
+  --l-base: 18.75%;
 }
+
+.blue {
+  --h-base: 210;
+  --s-base: 40%;
+  --l-base: 20%;
+}
+
+.green {
+  --h-base: 80;
+  --s-base: 50%;
+  --l-base: 20%;
+}
+
+.lime {
+  --h-base: 70;
+  --s-base: 45%;
+  --l-base: 22%;
+}
+
+.red {
+  --h-base: 360;
+  --s-base: 55%;
+  --l-base: 22%;
+}
+
 html {
   font-size: 18px;
   margin: 0;
