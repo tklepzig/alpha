@@ -233,34 +233,44 @@ const start = async () => {
     return res.sendFile(path.resolve(__dirname, "public", "index.html"));
   });
 
-  var privateKey = fs.readFileSync(
-    path.resolve(__dirname, `certificates/${certificateDomain}.key`),
-    "utf8"
-  );
-  var certificate = fs.readFileSync(
-    path.resolve(__dirname, `certificates/${certificateDomain}.crt`),
-    "utf8"
-  );
-
-  const httpServer = http.createServer(app);
-  const httpsServer = https.createServer(
-    { key: privateKey, cert: certificate },
-    app
-  );
-  httpServer.listen(port, () => {
-    console.log(`Listening on port ${port}`);
-  });
-  httpsServer.listen(sslPort, () => {
-    console.log(`Listening on ssl port ${sslPort}`);
-  });
   socket = new WebSocket.Server({ noServer: true });
 
+  const httpServer = http.createServer(app);
   httpServer.on("upgrade", (req, sock, head) => {
     socket.handleUpgrade(req, sock, head, ws => socket.emit("connection", ws));
   });
-  httpsServer.on("upgrade", (req, sock, head) => {
-    socket.handleUpgrade(req, sock, head, ws => socket.emit("connection", ws));
+
+  httpServer.listen(port, () => {
+    console.log(`Listening on port ${port}`);
   });
+
+  if (
+    (await fs.exists(`certificates/${certificateDomain}.key`)) &&
+    (await fs.exists(`certificates/${certificateDomain}.crt`))
+  ) {
+    var privateKey = fs.readFileSync(
+      path.resolve(__dirname, `certificates/${certificateDomain}.key`),
+      "utf8"
+    );
+    var certificate = fs.readFileSync(
+      path.resolve(__dirname, `certificates/${certificateDomain}.crt`),
+      "utf8"
+    );
+
+    const httpsServer = https.createServer(
+      { key: privateKey, cert: certificate },
+      app
+    );
+    httpsServer.on("upgrade", (req, sock, head) => {
+      socket.handleUpgrade(req, sock, head, ws =>
+        socket.emit("connection", ws)
+      );
+    });
+
+    httpsServer.listen(sslPort, () => {
+      console.log(`Listening on ssl port ${sslPort}`);
+    });
+  }
 };
 
 start();
