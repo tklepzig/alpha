@@ -102,6 +102,9 @@ article > section {
   box-shadow: 0 0 10px 2px rgba(15, 15, 15, 0.6);
   transition: opacity 0.2s ease-in-out;
 }
+article > section.break-all {
+  word-break: break-all;
+}
 article > section.done {
   text-decoration: line-through;
   color: hsla(var(--fg), 0.5);

@@ -57,7 +57,7 @@
         </div>
         <article>
           <section
-            :class="{ done: isDone }"
+            :class="{ done: isDone, 'break-all': isUrl(text) }"
             v-for="{ taskNo, text, isDone, link } in enrichedTasks"
           >
             <button
@@ -68,7 +68,7 @@
               {{ taskNo }}
             </button>
             <span>
-              <a target="_blank" :href="link" v-if="link">{{ text }}</a>
+              <a target="_blank" :href="link" v-if="link" v-html="text"></a>
               <template v-else>{{ text }}</template>
             </span>
             <button

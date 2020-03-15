@@ -42,6 +42,9 @@ new Vue({
     }
   },
   methods: {
+    isUrl(text) {
+      return text.startsWith("http");
+    },
     onOpen() {
       this.syncDryRun().then(({ changedTasks, newTasks }) => {
         if (changedTasks.length === 0 && newTasks.length === 0) {
@@ -59,12 +62,15 @@ new Vue({
       //TODO: delete not anymore task entries from the title cache
       const newTitles = await Promise.all(
         tasks
-          .filter(({ text }) => text.startsWith("http"))
+          .filter(({ text }) => this.isUrl(text))
           .filter(task => !this.cachedTitles.find(({ id }) => task.id === id))
           .map(async ({ id, text }) => {
             const res = await fetch(
               `/website-title?url=${encodeURIComponent(text)}`
             );
+            if (res.status !== 200) {
+              return { id, text };
+            }
             const title = await res.text();
             return { id, text: title };
           })
