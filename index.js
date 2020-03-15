@@ -20,7 +20,7 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-const certificateDomain = "devpad";
+const certificateDomain = "server";
 const port = 3003;
 const sslPort = port + 1;
 const onlyLocalDelete = true;
