@@ -6,7 +6,7 @@ import express from "express";
 import YAML from "yaml";
 import { EOL as eol } from "os";
 import WebSocket from "ws";
-import { createTask } from "./public/common.js";
+import { createTask, createList } from "./public/common.js";
 import fetch from "node-fetch";
 
 import http from "http";
@@ -26,30 +26,51 @@ const sslPort = port + 1;
 const onlyLocalDelete = true;
 const tasksFilePath = path.resolve(__dirname, "tasks.yaml");
 
-const readTasks = async () => {
+const readLists = async () => {
   const fileContent = await fs.readFile(tasksFilePath, "utf-8");
   return YAML.parse(fileContent);
 };
 
-const writeTasks = async tasks => {
-  await fs.writeFile(tasksFilePath, YAML.stringify(tasks), "utf-8");
+const readTasks = async (listNo = 1) => {
+  const fileContent = await fs.readFile(tasksFilePath, "utf-8");
+  const lists = YAML.parse(fileContent);
+
+  if (lists.length < +listNo) return [];
+  return lists[+listNo - 1].tasks;
+};
+
+const writeLists = async (lists) => {
+  await fs.writeFile(tasksFilePath, YAML.stringify(lists), "utf-8");
 
   if (socket) {
-    socket.clients.forEach(client => {
+    socket.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify(tasks));
+        client.send(JSON.stringify(lists));
       }
     });
   }
 };
 
-const append = async text => {
-  const tasks = await readTasks();
-  return writeTasks([...tasks, createTask(text)]);
+const writeTasks = async (tasks, listNo = 1) => {
+  const lists = await readLists();
+  const updatedLists = lists.map((list, index) =>
+    index + 1 === +listNo ? { ...list, tasks } : list
+  );
+  return writeLists(updatedLists);
 };
 
-const move2top = async taskNo => {
-  const tasks = await readTasks();
+const appendList = async (name) => {
+  const lists = await readLists();
+  return writeLists([...lists, createList(name)]);
+};
+
+const append = async (text, listNo = 1) => {
+  const tasks = await readTasks(listNo);
+  return writeTasks([...tasks, createTask(text)], listNo);
+};
+
+const move2top = async (taskNo, listNo = 1) => {
+  const tasks = await readTasks(listNo);
   return writeTasks(
     tasks.reduce((result, task, i) => {
       if (i + 1 === parseInt(taskNo)) {
@@ -58,74 +79,83 @@ const move2top = async taskNo => {
         result.push(task);
       }
       return result;
-    }, [])
+    }, []),
+    listNo
   );
 };
 
-const done = async taskNo => {
-  const tasks = await readTasks();
+const done = async (taskNo, listNo = 1) => {
+  const tasks = await readTasks(listNo);
   return writeTasks(
     tasks.map((task, i) =>
       i + 1 === parseInt(taskNo) ? { ...task, isDone: true } : task
-    )
+    ),
+    listNo
   );
 };
 
-const undone = async taskNo => {
-  const tasks = await readTasks();
+const undone = async (taskNo, listNo = 1) => {
+  const tasks = await readTasks(listNo);
   return writeTasks(
     tasks.map((task, i) =>
       i + 1 === parseInt(taskNo) ? { ...task, isDone: false } : task
-    )
+    ),
+    listNo
   );
 };
 
 const clear = async () => {
-  const tasks = await readTasks();
-  return writeTasks(tasks.filter(task => !task.isDone));
+  const lists = await readLists();
+  const updatedLists = lists
+    .map((list) => ({
+      ...list,
+      tasks: list.tasks.filter((task) => !task.isDone),
+    }))
+    .filter((list) => list.tasks.length > 0);
+  return writeLists(updatedLists);
 };
 
-const syncDryRun = async clientTasks => {
-  const serverTasks = await readTasks();
-  const changedTasksFromClient = [];
-  const newTasksFromClient = [];
-  clientTasks.forEach(clientTask => {
-    if (
-      !serverTasks.find(
-        serverTask =>
-          serverTask.id === clientTask.id && serverTask.text === clientTask.text
-      )
-    ) {
-      newTasksFromClient.push(clientTask);
-    } else if (
-      serverTasks.find(
-        serverTask =>
-          serverTask.id === clientTask.id &&
-          serverTask.text === clientTask.text &&
-          serverTask.isDone !== clientTask.isDone
-      )
-    ) {
-      changedTasksFromClient.push(clientTask);
-    }
-  });
+//const syncDryRun = async (clientTasks) => {
+//const serverTasks = await readTasks();
+//const changedTasksFromClient = [];
+//const newTasksFromClient = [];
+//clientTasks.forEach((clientTask) => {
+//if (
+//!serverTasks.find(
+//(serverTask) =>
+//serverTask.id === clientTask.id && serverTask.text === clientTask.text
+//)
+//) {
+//newTasksFromClient.push(clientTask);
+//} else if (
+//serverTasks.find(
+//(serverTask) =>
+//serverTask.id === clientTask.id &&
+//serverTask.text === clientTask.text &&
+//serverTask.isDone !== clientTask.isDone
+//)
+//) {
+//changedTasksFromClient.push(clientTask);
+//}
+//});
 
-  return { changedTasks: changedTasksFromClient, newTasks: newTasksFromClient };
-};
+//return { changedTasks: changedTasksFromClient, newTasks: newTasksFromClient };
+//};
 
-const removeDuplicates = tasks =>
-  tasks.reduce(
-    (uniqueTasks, task) =>
-      uniqueTasks.find(t => t.id === task.id && t.text === task.text)
-        ? uniqueTasks
-        : [...uniqueTasks, task],
-    []
-  );
+//const removeDuplicates = (tasks) =>
+//tasks.reduce(
+//(uniqueTasks, task) =>
+//uniqueTasks.find((t) => t.id === task.id && t.text === task.text)
+//? uniqueTasks
+//: [...uniqueTasks, task],
+//[]
+//);
 
-const sync = async clientTasks => {
-  const serverTasks = await readTasks();
-  const uniqueTasks = removeDuplicates([...clientTasks, ...serverTasks]);
-  await writeTasks(uniqueTasks);
-};
+//const sync = async (clientTasks) => {
+//const serverTasks = await readTasks();
+//const uniqueTasks = removeDuplicates([...clientTasks, ...serverTasks]);
+//await writeTasks(uniqueTasks);
+//};
 
 const markdown = async () => {
   const tasks = await readTasks();
@@ -137,12 +167,7 @@ const markdown = async () => {
     .join(eol);
 };
 
-const start = async () => {
-  const tasksFileExists = await fs.pathExists(tasksFilePath);
-  if (!tasksFileExists) {
-    await writeTasks([]);
-  }
-
+const registerRoutes = () => {
   app.get("/u/:taskNo", async (req, res) => {
     await undone(req.params.taskNo);
     return res.redirect("/");
@@ -187,12 +212,21 @@ const start = async () => {
     return res.sendStatus(200);
   });
 
-  app.get("/a/:task", async (req, res) => {
-    await append(req.params.task);
+  app.get("/a/:listNo?/:task", async (req, res) => {
+    await append(req.params.task, req.params.listNo);
     return res.redirect("/");
   });
   app.post("/append", async (req, res) => {
-    await append(req.body.task);
+    await append(req.body.task, req.body.listNo);
+    return res.sendStatus(200);
+  });
+
+  app.get("/al/:name", async (req, res) => {
+    await appendList(req.params.name);
+    return res.redirect("/");
+  });
+  app.post("/append-list", async (req, res) => {
+    await appendList(req.body.name);
     return res.sendStatus(200);
   });
 
@@ -200,14 +234,14 @@ const start = async () => {
     return res.send(await readTasks());
   });
 
-  app.post("/sync", async (req, res) => {
-    await sync(req.body);
-    return res.sendStatus(200);
-  });
+  //app.post("/sync", async (req, res) => {
+  //await sync(req.body);
+  //return res.sendStatus(200);
+  //});
 
-  app.post("/sync-dry-run", async (req, res) => {
-    return res.send(await syncDryRun(req.body));
-  });
+  //app.post("/sync-dry-run", async (req, res) => {
+  //return res.send(await syncDryRun(req.body));
+  //});
 
   app.get("/md", async (_, res) => {
     return res.send(await markdown());
@@ -232,12 +266,23 @@ const start = async () => {
   app.get("/", async (_, res) => {
     return res.sendFile(path.resolve(__dirname, "public", "index.html"));
   });
+};
+
+const start = async () => {
+  const tasksFileExists = await fs.pathExists(tasksFilePath);
+  if (!tasksFileExists) {
+    await writeLists([{ name: "default", tasks: [] }]);
+  }
+
+  registerRoutes();
 
   socket = new WebSocket.Server({ noServer: true });
 
   const httpServer = http.createServer(app);
   httpServer.on("upgrade", (req, sock, head) => {
-    socket.handleUpgrade(req, sock, head, ws => socket.emit("connection", ws));
+    socket.handleUpgrade(req, sock, head, (ws) =>
+      socket.emit("connection", ws)
+    );
   });
 
   httpServer.listen(port, () => {
@@ -262,7 +307,7 @@ const start = async () => {
       app
     );
     httpsServer.on("upgrade", (req, sock, head) => {
-      socket.handleUpgrade(req, sock, head, ws =>
+      socket.handleUpgrade(req, sock, head, (ws) =>
         socket.emit("connection", ws)
       );
     });
