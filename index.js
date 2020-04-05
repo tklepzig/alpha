@@ -253,9 +253,9 @@ const registerRoutes = () => {
 
     try {
       var title = html
-        .split("</head>")[0]
-        .split("<title>")[1]
-        .split("</title>")[0];
+        .split(/<\/head.*?>/)[0]
+        .split(/<title.*?>/)[1]
+        .split(/<\/title.*?>/)[0];
       res.send(title);
     } catch {
       res.sendStatus(500);
