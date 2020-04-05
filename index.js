@@ -168,30 +168,30 @@ const markdown = async () => {
 };
 
 const registerRoutes = () => {
-  app.get("/u/:taskNo", async (req, res) => {
-    await undone(req.params.taskNo);
+  app.get("/u/:listNo?/:taskNo", async (req, res) => {
+    await undone(req.params.taskNo, req.params.listNo);
     return res.redirect("/");
   });
   app.post("/undone", async (req, res) => {
-    await undone(req.body.taskNo);
+    await undone(req.body.taskNo, req.body.listNo);
     return res.sendStatus(200);
   });
 
-  app.get("/d/:taskNo", async (req, res) => {
-    await done(req.params.taskNo);
+  app.get("/d/:listNo?/:taskNo", async (req, res) => {
+    await done(req.params.taskNo, req.params.listNo);
     return res.redirect("/");
   });
   app.post("/done", async (req, res) => {
-    await done(req.body.taskNo);
+    await done(req.body.taskNo, req.body.listNo);
     return res.sendStatus(200);
   });
 
-  app.get("/t/:taskNo", async (req, res) => {
-    await move2top(req.params.taskNo);
+  app.get("/t/:listNo?/:taskNo", async (req, res) => {
+    await move2top(req.params.taskNo, req.params.listNo);
     return res.redirect("/");
   });
   app.post("/move2top", async (req, res) => {
-    await move2top(req.body.taskNo);
+    await move2top(req.body.taskNo, req.body.listNo);
     return res.sendStatus(200);
   });
 
@@ -230,8 +230,8 @@ const registerRoutes = () => {
     return res.sendStatus(200);
   });
 
-  app.get("/tasks", async (_, res) => {
-    return res.send(await readTasks());
+  app.get("/lists", async (_, res) => {
+    return res.send(await readLists());
   });
 
   //app.post("/sync", async (req, res) => {
