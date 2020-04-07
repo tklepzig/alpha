@@ -45,6 +45,12 @@ new Vue({
         return { ...task, taskNo };
       });
     },
+    listName() {
+      if (this.lists.length < this.listNo) {
+        return "";
+      }
+      return this.lists[this.listNo - 1].name;
+    },
   },
   methods: {
     getCurrentListTasks() {
@@ -55,6 +61,7 @@ new Vue({
     },
     switchList(index) {
       this.listNo = index + 1;
+      this.mode = "main";
     },
     isUrl(text) {
       return text.startsWith("http");

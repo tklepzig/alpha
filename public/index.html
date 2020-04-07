@@ -27,7 +27,18 @@
   </head>
   <body class="lime">
     <div id="app" v-cloak>
-      <div v-if="mode === 'sync-confirm'">
+      <template v-if="mode === 'lists'">
+        <button @click="switchList(0)">
+          [ Active Color ]
+        </button>
+        <button
+          v-for="({ name }, index) in lists.slice(1)"
+          @click="switchList(index + 1)"
+        >
+          {{ name }}
+        </button>
+      </template>
+      <template v-if="mode === 'sync-confirm'">
         <header>Sync Confirm</header>
         <header v-if="syncDryRunChangedTasks.length > 0">Changed Tasks</header>
         <article>
@@ -51,21 +62,22 @@
           <button type="button" @click="resetTasks">Reset</button>
           <button type="button" @click="confirmSync">Confirm</button>
         </footer>
-      </div>
-      <div v-if="mode === 'main'">
+      </template>
+      <template v-if="mode === 'main'">
         <div id="connection-status" :class="{ online: isOnline }">
           <span></span>
         </div>
+        <header style="display: grid; padding: 1rem 6rem 0.5rem 6rem;">
+          <button class="lab" v-if="listNo !== 1" @click="mode = 'lists'">
+            {{ listName }}
+          </button>
+          <button
+            class="lab"
+            v-if="listNo === 1"
+            @click="mode = 'lists'"
+          ></button>
+        </header>
         <article>
-          <div v-if="listNo === 1">
-            <button
-              v-for="({ name }, index) in lists.slice(1)"
-              @click="switchList(index + 1)"
-            >
-              {{ name }}
-            </button>
-          </div>
-          <button v-if="listNo !== 1" @click="listNo = 1">Back</button>
           <section
             :class="{ done: isDone, 'break-all': isUrl(text) }"
             v-for="{ taskNo, text, isDone, link } in enrichedTasks"
@@ -91,7 +103,7 @@
         <form @submit.prevent="addTask">
           <input v-model="newTaskText" type="text" autocomplete="off" />
         </form>
-      </div>
+      </template>
     </div>
     <script type="module" src="app.js"></script>
   </body>

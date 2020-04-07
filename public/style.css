@@ -5,6 +5,8 @@
   --h-base: 210;
   --s-base: 0%;
   --l-base: 18.75%;
+  --box-shadow: 0 0 10px 2px rgba(15, 15, 15, 0.6);
+  --box-shadow-inset: 0 0 10px -2px rgba(15, 15, 15, 0.4) inset;
 }
 
 .blue {
@@ -99,7 +101,7 @@ article > section {
   align-items: center;
   margin: 0.5rem 1rem;
   background: hsl(var(--h-base), var(--s-base), var(--l-base));
-  box-shadow: 0 0 10px 2px rgba(15, 15, 15, 0.6);
+  box-shadow: var(--box-shadow);
   transition: opacity 0.2s ease-in-out;
 }
 article > section.break-all {
@@ -137,7 +139,12 @@ article > section > button.move2top {
 }
 article > section > button.move2top:hover,
 article > section > button.move2top:active {
-  background: hsla(var(--h-base), var(--s-base), calc(var(--l-base) + 10%), 0.85);
+  background: hsla(
+    var(--h-base),
+    var(--s-base),
+    calc(var(--l-base) + 10%),
+    0.85
+  );
 }
 article > section > button.toggle-done {
   position: absolute;
@@ -168,10 +175,33 @@ form > input {
   background: hsla(var(--bg), 16%, 0.4);
   font-family: inherit;
   font-size: 1rem;
-  box-shadow: 0 0 10px -2px rgba(15, 15, 15, 0.4) inset;
+  box-shadow: var(--box-shadow-inset);
   margin: 0 -1px;
 }
 form > input:focus {
   outline: 1px solid hsla(var(--h-base), var(--s-base), var(--l-base));
   border: 1px solid hsla(var(--h-base), var(--s-base), var(--l-base));
+}
+
+button.lab {
+  padding: 0.3rem 0.5rem;
+  font-size: 0.75rem;
+
+  background: hsl(var(--h-base), var(--s-base), var(--l-base));
+  border: none;
+  border-radius: var(--border-radius);
+  color: inherit;
+  box-shadow: var(--box-shadow);
+  outline: none;
+  cursor: pointer;
+  margin: 0;
+  font-family: inherit;
+  color: inherit;
+  line-height: 1;
+  transition: background 0.2s ease-in-out;
+}
+
+button.lab:hover,
+button.lab:active {
+  background: hsl(var(--h-base), var(--s-base), calc(var(--l-base) + 10%));
 }
