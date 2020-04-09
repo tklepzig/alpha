@@ -1,4 +1,5 @@
 import Vue from "https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.esm.browser.js";
+import { Task } from "./components/Task.js";
 import { createTask } from "./common.js";
 
 const readLists = () => {
@@ -12,6 +13,9 @@ const writeLists = (lists) => {
 
 new Vue({
   el: "#app",
+  components: {
+    task: Task,
+  },
   data: {
     listNo: 1,
     lists: [],
