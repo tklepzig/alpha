@@ -12,6 +12,15 @@
   --box-shadow-inset: 0 0 10px -2px rgba(15, 15, 15, 0.4) inset;
 }
 
+.red-brown {
+  --h-base: 22;
+  --s-base: 97%;
+  --l-base: 23%;
+  --h-base-2: 25;
+  --s-base-2: 44%;
+  --l-base-2: 26%;
+}
+
 .blue {
   --h-base: 210;
   --s-base: 40%;
