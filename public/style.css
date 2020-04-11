@@ -4,21 +4,30 @@
   --border-radius: 0.15rem;
   --h-base: 210;
   --s-base: 0%;
-  --l-base: 18.75%;
+  --l-base: 20%;
   --h-base-2: 210;
-  --s-base-2: 40%;
+  --s-base-2: 10%;
   --l-base-2: 20%;
   --box-shadow: 0 0 10px 2px rgba(15, 15, 15, 0.6);
   --box-shadow-inset: 0 0 10px -2px rgba(15, 15, 15, 0.4) inset;
 }
 
-.red-brown {
+.red-orange {
+  --h-base: 6;
+  --s-base: 55%;
+  --l-base: 26%;
+  --h-base-2: 15;
+  --s-base-2: 62%;
+  --l-base-2: 27%;
+}
+
+.orange-brown {
   --h-base: 22;
   --s-base: 97%;
   --l-base: 23%;
-  --h-base-2: 25;
-  --s-base-2: 44%;
-  --l-base-2: 26%;
+  --h-base-2: 31;
+  --s-base-2: 94%;
+  --l-base-2: 24%;
 }
 
 .blue {
