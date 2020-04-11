@@ -5,6 +5,9 @@
   --h-base: 210;
   --s-base: 0%;
   --l-base: 18.75%;
+  --h-base-2: 210;
+  --s-base-2: 40%;
+  --l-base-2: 20%;
   --box-shadow: 0 0 10px 2px rgba(15, 15, 15, 0.6);
   --box-shadow-inset: 0 0 10px -2px rgba(15, 15, 15, 0.4) inset;
 }
@@ -104,6 +107,9 @@ article > section {
   box-shadow: var(--box-shadow);
   transition: opacity 0.2s ease-in-out;
 }
+article > section.blubb {
+  background: hsl(var(--h-base-2), var(--s-base-2), var(--l-base-2));
+}
 article > section.break-all {
   word-break: break-all;
 }
@@ -118,6 +124,9 @@ article > section > span {
 article > section > span > a {
   text-decoration: none;
   color: hsl(var(--h-base), 100%, 80%);
+}
+article > section > span > a {
+  color: hsl(var(--h-base-2), 100%, 80%);
 }
 article > section > button {
   border: none;
@@ -137,12 +146,24 @@ article > section > button.move2top {
   transition: background 0.2s ease-in-out;
   border-radius: var(--border-radius) 0 0 var(--border-radius);
 }
+article > section.blubb > button.move2top {
+  background: hsla(var(--h-base-2), var(--s-base-2), calc(var(--l-base-2) + 10%), 0);
+}
 article > section > button.move2top:hover,
 article > section > button.move2top:active {
   background: hsla(
     var(--h-base),
     var(--s-base),
     calc(var(--l-base) + 10%),
+    0.85
+  );
+}
+article > section.blubb > button.move2top:hover,
+article > section.blubb > button.move2top:active {
+  background: hsla(
+    var(--h-base-2),
+    var(--s-base-2),
+    calc(var(--l-base-2) + 10%),
     0.85
   );
 }
@@ -157,6 +178,9 @@ article > section > button.toggle-done {
   opacity: 0.2;
   transition: opacity 0.2s ease-in-out;
   border-radius: 0 var(--border-radius) var(--border-radius) 0;
+}
+article > section.blubb > button.toggle-done {
+  background: hsl(var(--h-base-2), var(--s-base-2), calc(var(--l-base-2) + 10%));
 }
 article > section > button.toggle-done:hover,
 article > section > button.toggle-done:active {
@@ -182,6 +206,10 @@ form > input:focus {
   outline: 1px solid hsla(var(--h-base), var(--s-base), var(--l-base));
   border: 1px solid hsla(var(--h-base), var(--s-base), var(--l-base));
 }
+form.blubb > input:focus {
+  outline: 1px solid hsla(var(--h-base-2), var(--s-base-2), var(--l-base-2));
+  border: 1px solid hsla(var(--h-base-2), var(--s-base-2), var(--l-base-2));
+}
 
 button.lab {
   padding: 0.3rem 0.5rem;
@@ -200,8 +228,50 @@ button.lab {
   line-height: 1;
   transition: background 0.2s ease-in-out;
 }
+button.lab.blubb {
+  background: hsl(var(--h-base-2), var(--s-base-2), var(--l-base-2));
+}
 
 button.lab:hover,
 button.lab:active {
   background: hsl(var(--h-base), var(--s-base), calc(var(--l-base) + 10%));
+}
+button.lab.blubb:hover,
+button.lab.blubb:active {
+  background: hsl(var(--h-base-2), var(--s-base-2), calc(var(--l-base-2) + 10%));
+}
+
+
+.lists {
+  display: grid;
+}
+
+.lists > .lab {
+  margin: 0.5rem 1rem;
+}
+
+.lists > .content {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+}
+
+.lists > .content > button {
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  border-radius: var(--border-radius);
+  display: grid;
+  align-items: center;
+  margin: 0.5rem 1rem;
+  padding: 1.5rem 1rem;
+  background: hsl(var(--h-base-2), var(--s-base-2), var(--l-base-2));
+  box-shadow: var(--box-shadow);
+  transition: opacity 0.2s ease-in-out;
+}
+.lists > .content > button:hover,
+.lists > .content > button:active {
+  background: hsl(var(--h-base-2), var(--s-base-2), calc(var(--l-base-2) + 10%));
 }

@@ -27,16 +27,23 @@
   </head>
   <body class="lime">
     <div id="app" v-cloak>
+      <div id="connection-status" :class="{ online: isOnline }">
+        <span></span>
+      </div>
       <template v-if="mode === 'lists'">
-        <button @click="switchList(0)">
-          [ Active Color ]
-        </button>
-        <button
-          v-for="({ name }, index) in lists.slice(1)"
-          @click="switchList(index + 1)"
-        >
-          {{ name }}
-        </button>
+        <div class="lists">
+          <header style="display: grid; padding: 1rem 6rem 0.5rem 6rem;">
+            <button class="lab" @click="switchList(0)"></button>
+          </header>
+          <div class="content">
+            <button
+              v-for="({ name }, index) in lists.slice(1)"
+              @click="switchList(index + 1)"
+            >
+              {{ name }}
+            </button>
+          </div>
+        </div>
       </template>
       <template v-if="mode === 'sync-confirm'">
         <header>Sync Confirm</header>
@@ -64,22 +71,23 @@
         </footer>
       </template>
       <template v-if="mode === 'main'">
-        <div id="connection-status" :class="{ online: isOnline }">
-          <span></span>
-        </div>
         <header style="display: grid; padding: 1rem 6rem 0.5rem 6rem;">
-          <button class="lab" v-if="listNo !== 1" @click="mode = 'lists'">
+          <button
+            class="lab blubb"
+            v-if="listNo !== 1"
+            @click="mode = 'lists'"
+          >
             {{ listName }}
           </button>
           <button
-            class="lab"
+            class="lab blubb"
             v-if="listNo === 1"
             @click="mode = 'lists'"
           ></button>
         </header>
         <article>
           <section
-            :class="{ done: isDone, 'break-all': isUrl(text) }"
+            :class="{ done: isDone, 'break-all': isUrl(text), blubb: listNo !== 1 }"
             v-for="{ taskNo, text, isDone, link } in enrichedTasks"
           >
             <button
@@ -100,7 +108,7 @@
             ></button>
           </section>
         </article>
-        <form @submit.prevent="addTask">
+        <form :class="{ blubb: listNo !== 1 }" @submit.prevent="addTask">
           <input v-model="newTaskText" type="text" autocomplete="off" />
         </form>
       </template>
