@@ -25,11 +25,9 @@
       }
     </script>
   </head>
-  <body class="red-orange">
+  <body class="orange-brown">
     <div id="app" v-cloak>
-      <div id="connection-status" :class="{ online: isOnline }">
-        <span></span>
-      </div>
+      <connection-indicator is-online="isOnline"></connection-indicator>
       <template v-if="mode === 'lists'">
         <div class="lists">
           <header style="display: grid; padding: 1rem 6rem 0.5rem 6rem;">

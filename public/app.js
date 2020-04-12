@@ -1,5 +1,5 @@
 import Vue from "https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.esm.browser.js";
-import { Task } from "./components/Task.js";
+import { ConnectionIndicator } from "./components/ConnectionIndicator.js";
 import { createTask } from "./common.js";
 
 const readLists = () => {
@@ -14,7 +14,7 @@ const writeLists = (lists) => {
 new Vue({
   el: "#app",
   components: {
-    task: Task,
+    connectionIndicator: ConnectionIndicator,
   },
   data: {
     listNo: 1,
