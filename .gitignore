@@ -3,3 +3,4 @@ tasks.yaml
 certificates/*
 !certificates/Makefile
 !certificates/*.sh
+public/*.css.map
