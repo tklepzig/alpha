@@ -69,12 +69,11 @@
         </footer>
       </template>
       <template v-if="mode === 'main'">
-        <header style="display: grid; padding: 1rem 6rem 0.5rem 6rem;">
-          <button
-            class="lab blubb"
-            v-if="listNo !== 1"
-            @click="mode = 'lists'"
-          >
+        <header
+          v-if="lists.length > 1"
+          style="display: grid; padding: 1rem 6rem 0.5rem 6rem;"
+        >
+          <button class="lab blubb" v-if="listNo !== 1" @click="mode = 'lists'">
             {{ listName }}
           </button>
           <button
