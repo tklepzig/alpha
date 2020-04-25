@@ -11,6 +11,20 @@ const writeLists = (lists) => {
   localStorage.setItem("alpha-tasks", JSON.stringify(lists));
 };
 
+const vibrate = (duration) => {
+  const navigator = window.navigator;
+
+  navigator.vibrate =
+    navigator.vibrate ||
+    navigator.webkitVibrate ||
+    navigator.mozVibrate ||
+    navigator.msVibrate;
+
+  if (navigator.vibrate) {
+    navigator.vibrate(duration);
+  }
+};
+
 new Vue({
   el: "#app",
   components: {
@@ -63,9 +77,13 @@ new Vue({
     updateCurrentListTasks(tasks) {
       this.lists[this.listNo - 1].tasks = tasks;
     },
+    setMode(mode) {
+      vibrate(20);
+      this.mode = mode;
+    },
     switchList(index) {
       this.listNo = index + 1;
-      this.mode = "main";
+      this.setMode("main");
     },
     isUrl(text) {
       return text.startsWith("http");
@@ -182,6 +200,7 @@ new Vue({
       window.scrollTo(0, document.body.scrollHeight);
     },
     async toggleDone(taskNo, isDone) {
+      vibrate(40);
       if (this.isOnline) {
         return fetch(`/${isDone ? "undone" : "done"}`, {
           method: "post",
@@ -198,6 +217,7 @@ new Vue({
       writeLists(this.lists);
     },
     async move2top(taskNo) {
+      vibrate(40);
       if (this.isOnline) {
         return fetch(`/move2top`, {
           method: "post",
