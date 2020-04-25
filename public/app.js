@@ -136,8 +136,31 @@ new Vue({
         this.connect();
       }, 3000);
     },
+    cloneTask(text) {
+      const matches = text.match(/(.*)\/(\d+)/i);
+      if (!matches || matches.length !== 3) {
+        return undefined;
+      }
+      const listName = matches[1];
+      const taskNo = matches[2];
+
+      const listIndex = listName
+        ? this.lists.findIndex((l) => l.name === listName)
+        : 0;
+
+      if (taskNo > this.lists[listIndex].tasks.length) {
+        return undefined;
+      }
+
+      const task = this.lists[listIndex].tasks[taskNo - 1];
+      return task.text;
+    },
     async addTask() {
-      const text = this.newTaskText;
+      let text = this.newTaskText;
+      const existingTaskText = this.cloneTask(text);
+      if (existingTaskText) {
+        text = existingTaskText;
+      }
       if (!text) return Promise.resolve();
       if (this.isOnline) {
         return fetch("/append", {
