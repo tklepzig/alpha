@@ -156,7 +156,7 @@ new Vue({
     },
     cloneTask(text) {
       const matches = text.match(/(.*)\/(\d+)/i);
-      if (!matches || matches.length !== 3) {
+      if (this.isUrl(text) || !matches || matches.length !== 3) {
         return undefined;
       }
       const listName = matches[1];
