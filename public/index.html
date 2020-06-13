@@ -27,7 +27,7 @@
   </head>
   <body class="orange-brown">
     <div id="app" v-cloak>
-      <connection-indicator :mode="isWaitingForSyncConfirmation ? 'sync': isOnline ? 'online' : 'offline'"></connection-indicator>
+      <connection-indicator :mode="connectionMode"></connection-indicator>
       <template v-if="mode === 'lists'">
         <div class="lists">
           <header style="display: grid; padding: 1rem 6rem 0.5rem 6rem;">

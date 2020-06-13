@@ -34,8 +34,7 @@ new Vue({
     listNo: 1,
     lists: [],
     cachedTitles: [],
-    isOnline: false,
-    isWaitingForSyncConfirmation: false,
+    connectionMode: "offline",
     newTaskText: "",
     mode: "main",
   },
@@ -98,7 +97,7 @@ new Vue({
         console.dir(result);
         console.dir(result.result.length);
         if (result.result.length === 0) {
-          this.isOnline = true;
+          this.connectionMode = "online";
           this.mode = "main";
           return;
         }
@@ -106,7 +105,7 @@ new Vue({
         //this.sync(this.tasks);
         //return;
         //}
-        this.isWaitingForSyncConfirmation = true;
+        this.connectionMode = "sync";
         this.mode = "sync-confirm";
         //this.syncDryRunChangedTasks = changedTasks;
         //this.syncDryRunNewTasks = newTasks;
@@ -144,7 +143,7 @@ new Vue({
       }
     },
     async onMessage(message) {
-      if (this.isWaitingForSyncConfirmation) {
+      if (this.connectionMode === "sync") {
         return;
       }
       const lists = JSON.parse(message.data);
@@ -153,7 +152,7 @@ new Vue({
       this.updateTitleCache(lists);
     },
     onClose() {
-      this.isOnline = false;
+      this.connectionMode = "offline";
       setTimeout(() => {
         this.connect();
       }, 3000);
@@ -184,7 +183,7 @@ new Vue({
         text = existingTaskText;
       }
       if (!text) return Promise.resolve();
-      if (this.isOnline) {
+      if (this.connectionMode === "online") {
         return fetch("/append", {
           method: "post",
           body: `task=${text}&listNo=${this.listNo}`,
@@ -205,7 +204,7 @@ new Vue({
     },
     async toggleDone(taskNo, isDone) {
       vibrate(40);
-      if (this.isOnline) {
+      if (this.connectionMode === "online") {
         return fetch(`/${isDone ? "undone" : "done"}`, {
           method: "post",
           body: `taskNo=${taskNo}&listNo=${this.listNo}`,
@@ -222,7 +221,7 @@ new Vue({
     },
     async move2top(taskNo) {
       vibrate(40);
-      if (this.isOnline) {
+      if (this.connectionMode === "online") {
         return fetch(`/move2top`, {
           method: "post",
           body: `taskNo=${taskNo}&listNo=${this.listNo}`,
@@ -269,8 +268,7 @@ new Vue({
       this.lists = await res.json();
       this.updateTitleCache(this.lists);
       writeLists(this.lists);
-      this.isWaitingForSyncConfirmation = false;
-      this.isOnline = true;
+      this.connectionMode = "online";
       //await this.sync([]);
       this.mode = "main";
     },
