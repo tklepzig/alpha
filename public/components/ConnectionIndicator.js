@@ -1,7 +1,7 @@
 export const ConnectionIndicator = {
-  props: ["isOnline"],
+  props: ["mode"],
   template: `
-<div id="connection-status" :class="{ online: isOnline }">
+<div id="connection-status" :class="mode">
   <span></span>
 </div>
 `,

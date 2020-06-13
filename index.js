@@ -115,32 +115,50 @@ const clear = async () => {
   return writeLists(updatedLists);
 };
 
-//const syncDryRun = async (clientTasks) => {
-//const serverTasks = await readTasks();
-//const changedTasksFromClient = [];
-//const newTasksFromClient = [];
-//clientTasks.forEach((clientTask) => {
-//if (
-//!serverTasks.find(
-//(serverTask) =>
-//serverTask.id === clientTask.id && serverTask.text === clientTask.text
-//)
-//) {
-//newTasksFromClient.push(clientTask);
-//} else if (
-//serverTasks.find(
-//(serverTask) =>
-//serverTask.id === clientTask.id &&
-//serverTask.text === clientTask.text &&
-//serverTask.isDone !== clientTask.isDone
-//)
-//) {
-//changedTasksFromClient.push(clientTask);
-//}
-//});
+const syncDryRun = async (clientLists) => {
+  const serverLists = await readLists();
+  let result = "";
 
-//return { changedTasks: changedTasksFromClient, newTasks: newTasksFromClient };
-//};
+  for (const clientList of clientLists) {
+    const serverList = serverLists.find(
+      (serverList) =>
+        serverList.id === clientList.id && serverList.name === clientList.name
+    );
+
+    for (const clientTask of clientList.tasks) {
+      if (
+        !serverList.tasks.find(
+          (serverTask) =>
+            serverTask.id === clientTask.id &&
+            serverTask.text === clientTask.text
+        )
+      ) {
+        // clientTask is new
+        result += `Task ${clientTask.text} of list ${clientList.name} is new.${eol}`;
+        continue;
+      }
+      const serverTask = serverList.tasks.find(
+        (st) =>
+          st.id === clientTask.id &&
+          st.text === clientTask.text &&
+          st.isDone !== clientTask.isDone
+      );
+      if (serverTask) {
+        // clientTask has changed
+        result += `Task ${clientTask.text} of list ${
+          clientList.name
+        } has changed from ${serverTask.isDone ? "done" : "undone"} to ${
+          clientTask.isDone ? "done" : "undone"
+        }.${eol}`;
+      }
+
+      //TODO: check if order of tasks in list has changed
+    }
+  }
+
+  return { result };
+  //return { changedTasks: changedTasksFromClient, newTasks: newTasksFromClient };
+};
 
 //const removeDuplicates = (tasks) =>
 //tasks.reduce(
@@ -239,9 +257,9 @@ const registerRoutes = () => {
   //return res.sendStatus(200);
   //});
 
-  //app.post("/sync-dry-run", async (req, res) => {
-  //return res.send(await syncDryRun(req.body));
-  //});
+  app.post("/sync-dry-run", async (req, res) => {
+    return res.send(await syncDryRun(req.body));
+  });
 
   app.get("/md", async (_, res) => {
     return res.send(await markdown());

@@ -16,5 +16,6 @@ export const createTask = (text) => ({
 
 export const createList = (name) => ({
   name,
+  id: generateGuid(),
   tasks: [],
 });

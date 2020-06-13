@@ -1,6 +1,7 @@
-var CACHE_NAME = "alpha-cache-2020-06-10";
+var CACHE_NAME = "alpha-cache-2020-06-13";
 var urlsToCache = [
   "/",
+  "/index.html",
   "manifest.json",
   "/style.css",
   "/sw.js",

@@ -101,6 +101,11 @@ body > div[v-cloak] > div {
     width: 1rem;
     border-radius: 0.1rem;
     transition: background-color 0.5s ease-in-out;
+  }
+  &.sync > span {
+    background: hsl(30, 100%, 50%);
+  }
+  &.offline > span {
     background: hsl(0, 50%, 50%);
   }
   &.online > span {

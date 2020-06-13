@@ -34,10 +34,8 @@ new Vue({
     listNo: 1,
     lists: [],
     cachedTitles: [],
-    //syncDryRunChangedTasks: [],
-    //syncDryRunNewTasks: [],
     isOnline: false,
-    //isWaitingForSyncConfirmation: false,
+    isWaitingForSyncConfirmation: false,
     newTaskText: "",
     mode: "main",
   },
@@ -90,23 +88,29 @@ new Vue({
     },
     async onOpen() {
       //remove when adding conflict resolution again
-      const res = await fetch(`/lists`);
-      this.lists = await res.json();
-      this.updateTitleCache(this.lists);
-      writeLists(this.lists);
-      this.isOnline = true;
+      //const res = await fetch(`/lists`);
+      //this.lists = await res.json();
+      //this.updateTitleCache(this.lists);
+      //writeLists(this.lists);
+      //this.isOnline = true;
       //---
-
-      //this.syncDryRun().then(({ changedTasks, newTasks }) => {
-      //if (changedTasks.length === 0 && newTasks.length === 0) {
-      //this.sync(this.tasks);
-      //return;
-      //}
-      //this.isWaitingForSyncConfirmation = true;
-      //this.mode = "sync-confirm";
-      //this.syncDryRunChangedTasks = changedTasks;
-      //this.syncDryRunNewTasks = newTasks;
-      //});
+      this.syncDryRun().then((result) => {
+        console.dir(result);
+        console.dir(result.result.length);
+        if (result.result.length === 0) {
+          this.isOnline = true;
+          this.mode = "main";
+          return;
+        }
+        //if (changedTasks.length === 0 && newTasks.length === 0) {
+        //this.sync(this.tasks);
+        //return;
+        //}
+        this.isWaitingForSyncConfirmation = true;
+        this.mode = "sync-confirm";
+        //this.syncDryRunChangedTasks = changedTasks;
+        //this.syncDryRunNewTasks = newTasks;
+      });
     },
     async updateTitleCache(lists) {
       //TODO: delete not anymore task entries from the title cache
@@ -140,9 +144,9 @@ new Vue({
       }
     },
     async onMessage(message) {
-      //if (this.isWaitingForSyncConfirmation) {
-      //return;
-      //}
+      if (this.isWaitingForSyncConfirmation) {
+        return;
+      }
       const lists = JSON.parse(message.data);
       writeLists(lists);
       this.lists = lists;
@@ -249,22 +253,27 @@ new Vue({
     //});
     //this.isOnline = true;
     //},
-    //async syncDryRun() {
-    //const res = await fetch(`/sync-dry-run`, {
-    //method: "POST",
-    //body: JSON.stringify(this.tasks),
-    //headers: {
-    //Accept: "application/json",
-    //"Content-Type": "application/json",
-    //},
-    //});
-    //return await res.json();
-    //},
-    //async resetTasks() {
-    //this.isWaitingForSyncConfirmation = false;
-    //await this.sync([]);
-    //this.mode = "main";
-    //},
+    async syncDryRun() {
+      const res = await fetch(`/sync-dry-run`, {
+        method: "POST",
+        body: JSON.stringify(this.lists),
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+      return await res.json();
+    },
+    async resetTasks() {
+      const res = await fetch(`/lists`);
+      this.lists = await res.json();
+      this.updateTitleCache(this.lists);
+      writeLists(this.lists);
+      this.isWaitingForSyncConfirmation = false;
+      this.isOnline = true;
+      //await this.sync([]);
+      this.mode = "main";
+    },
     //async confirmSync() {
     //this.isWaitingForSyncConfirmation = false;
     //await this.sync(this.tasks);
