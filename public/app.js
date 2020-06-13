@@ -86,30 +86,14 @@ new Vue({
       return text.startsWith("http");
     },
     async onOpen() {
-      //remove when adding conflict resolution again
-      //const res = await fetch(`/lists`);
-      //this.lists = await res.json();
-      //this.updateTitleCache(this.lists);
-      //writeLists(this.lists);
-      //this.isOnline = true;
-      //---
-      this.syncDryRun().then((result) => {
-        console.dir(result);
-        console.dir(result.result.length);
-        if (result.result.length === 0) {
-          this.connectionMode = "online";
-          this.mode = "main";
-          return;
-        }
-        //if (changedTasks.length === 0 && newTasks.length === 0) {
-        //this.sync(this.tasks);
-        //return;
-        //}
-        this.connectionMode = "sync";
-        this.mode = "sync-confirm";
-        //this.syncDryRunChangedTasks = changedTasks;
-        //this.syncDryRunNewTasks = newTasks;
-      });
+      const result = await this.syncDryRun();
+      if (result.result.length === 0) {
+        this.sync();
+        return;
+      }
+      console.dir(result);
+      this.connectionMode = "sync";
+      this.mode = "sync-confirm";
     },
     async updateTitleCache(lists) {
       //TODO: delete not anymore task entries from the title cache
@@ -241,17 +225,18 @@ new Vue({
       );
       writeLists(this.lists);
     },
-    //async sync(tasks) {
-    //await fetch(`/sync`, {
-    //method: "POST",
-    //body: JSON.stringify(tasks),
-    //headers: {
-    //Accept: "application/json",
-    //"Content-Type": "application/json",
-    //},
-    //});
-    //this.isOnline = true;
-    //},
+    async sync() {
+      //await fetch(`/sync`, {
+      //method: "POST",
+      //body: JSON.stringify(tasks),
+      //headers: {
+      //Accept: "application/json",
+      //"Content-Type": "application/json",
+      //},
+      //});
+      this.connectionMode = "online";
+      this.mode = "main";
+    },
     async syncDryRun() {
       const res = await fetch(`/sync-dry-run`, {
         method: "POST",
@@ -268,14 +253,10 @@ new Vue({
       this.lists = await res.json();
       this.updateTitleCache(this.lists);
       writeLists(this.lists);
-      this.connectionMode = "online";
-      //await this.sync([]);
-      this.mode = "main";
+      await this.sync();
     },
     //async confirmSync() {
-    //this.isWaitingForSyncConfirmation = false;
     //await this.sync(this.tasks);
-    //this.mode = "main";
     //},
     connect() {
       const webSocketProtocol = location.protocol === "https:" ? "wss" : "ws";
