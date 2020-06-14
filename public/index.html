@@ -45,7 +45,9 @@
       </template>
       <template v-if="mode === 'sync-confirm'">
         <header>Sync Confirm</header>
+        <pre style="font-size: 0.5rem">{{syncDryRunResult}}</pre>
         <button type="button" @click="resetTasks">Reset</button>
+        <button type="button" @click="confirmSync">Confirm</button>
       </template>
       <template v-if="mode === 'main'">
         <header

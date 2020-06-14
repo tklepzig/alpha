@@ -37,6 +37,7 @@ new Vue({
     connectionMode: "offline",
     newTaskText: "",
     mode: "main",
+    syncDryRunResult: "",
   },
   computed: {
     enrichedTasks() {
@@ -86,12 +87,12 @@ new Vue({
       return text.startsWith("http");
     },
     async onOpen() {
-      const result = await this.syncDryRun();
-      if (result.result.length === 0) {
-        this.sync();
+      const { result } = await this.syncDryRun();
+      if (result.length === 0) {
+        this.sync(this.lists);
         return;
       }
-      console.dir(result);
+      this.syncDryRunResult = result;
       this.connectionMode = "sync";
       this.mode = "sync-confirm";
     },
@@ -225,15 +226,15 @@ new Vue({
       );
       writeLists(this.lists);
     },
-    async sync() {
-      //await fetch(`/sync`, {
-      //method: "POST",
-      //body: JSON.stringify(tasks),
-      //headers: {
-      //Accept: "application/json",
-      //"Content-Type": "application/json",
-      //},
-      //});
+    async sync(lists) {
+      await fetch(`/sync`, {
+        method: "POST",
+        body: JSON.stringify(lists),
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
       this.connectionMode = "online";
       this.mode = "main";
     },
@@ -253,11 +254,11 @@ new Vue({
       this.lists = await res.json();
       this.updateTitleCache(this.lists);
       writeLists(this.lists);
-      await this.sync();
+      await this.sync([]);
     },
-    //async confirmSync() {
-    //await this.sync(this.tasks);
-    //},
+    async confirmSync() {
+      await this.sync(this.lists);
+    },
     connect() {
       const webSocketProtocol = location.protocol === "https:" ? "wss" : "ws";
       const ws = new WebSocket(

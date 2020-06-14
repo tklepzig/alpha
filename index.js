@@ -26,6 +26,12 @@ const sslPort = port + 1;
 const onlyLocalDelete = true;
 const tasksFilePath = path.resolve(__dirname, "tasks.yaml");
 
+const listsAreEqual = (listA, listB) =>
+  listA.id === listB.id && listA.name === listB.name;
+
+const tasksAreEqual = (taskA, taskB) =>
+  taskA.id === taskB.id && taskA.text === taskB.text;
+
 const readLists = async () => {
   const fileContent = await fs.readFile(tasksFilePath, "utf-8");
   return YAML.parse(fileContent);
@@ -119,12 +125,6 @@ const syncDryRun = async (clientLists) => {
   const serverLists = await readLists();
   let result = "";
 
-  const listsAreEqual = (listA, listB) =>
-    listA.id === listB.id && listA.name === listB.name;
-
-  const tasksAreEqual = (taskA, taskB) =>
-    taskA.id === taskB.id && taskA.text === taskB.text;
-
   for (const clientList of clientLists) {
     const serverList = serverLists.find((serverList) =>
       listsAreEqual(clientList, serverList)
@@ -171,20 +171,23 @@ const syncDryRun = async (clientLists) => {
   return { result };
 };
 
-//const removeDuplicates = (tasks) =>
-//tasks.reduce(
-//(uniqueTasks, task) =>
-//uniqueTasks.find((t) => t.id === task.id && t.text === task.text)
-//? uniqueTasks
-//: [...uniqueTasks, task],
-//[]
-//);
+const removeDuplicates = (tasks) =>
+  tasks.reduce(
+    (uniqueTasks, task) =>
+      uniqueTasks.find((t) => t.id === task.id && t.text === task.text)
+        ? uniqueTasks
+        : [...uniqueTasks, task],
+    []
+  );
 
-//const sync = async (clientTasks) => {
-//const serverTasks = await readTasks();
-//const uniqueTasks = removeDuplicates([...clientTasks, ...serverTasks]);
-//await writeTasks(uniqueTasks);
-//};
+const sync = async (clientLists) => {
+  for (var i = 0; i < clientLists.length; i++) {
+    const clientTasks = clientLists[i].tasks;
+    const serverTasks = await readTasks(i + 1);
+    const uniqueTasks = removeDuplicates([...clientTasks, ...serverTasks]);
+    await writeTasks(uniqueTasks, i + 1);
+  }
+};
 
 const markdown = async () => {
   const tasks = await readTasks();
@@ -263,10 +266,10 @@ const registerRoutes = () => {
     return res.send(await readLists());
   });
 
-  //app.post("/sync", async (req, res) => {
-  //await sync(req.body);
-  //return res.sendStatus(200);
-  //});
+  app.post("/sync", async (req, res) => {
+    await sync(req.body);
+    return res.sendStatus(200);
+  });
 
   app.post("/sync-dry-run", async (req, res) => {
     return res.send(await syncDryRun(req.body));
