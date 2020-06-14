@@ -119,31 +119,45 @@ const syncDryRun = async (clientLists) => {
   const serverLists = await readLists();
   let result = "";
 
+  const listsAreEqual = (listA, listB) =>
+    listA.id === listB.id && listA.name === listB.name;
+
+  const tasksAreEqual = (taskA, taskB) =>
+    taskA.id === taskB.id && taskA.text === taskB.text;
+
   for (const clientList of clientLists) {
-    const serverList = serverLists.find(
-      (serverList) =>
-        serverList.id === clientList.id && serverList.name === clientList.name
+    const serverList = serverLists.find((serverList) =>
+      listsAreEqual(clientList, serverList)
     );
 
+    const clientTaskNumbers = clientList.tasks
+      .slice(0, serverList.tasks.length)
+      .map(({ id, text }) => ({
+        id,
+        text,
+      }));
+    const serverTaskNumbers = serverList.tasks.map(({ id, text }) => ({
+      id,
+      text,
+    }));
+    for (var i = 0; i < clientTaskNumbers.length; i++) {
+      if (!tasksAreEqual(clientTaskNumbers[i], serverTaskNumbers[i])) {
+        result += `The order of tasks in list ${clientList.name} has changed.${eol}`;
+        break;
+      }
+    }
+
     for (const clientTask of clientList.tasks) {
-      if (
-        !serverList.tasks.find(
-          (serverTask) =>
-            serverTask.id === clientTask.id &&
-            serverTask.text === clientTask.text
-        )
-      ) {
+      const serverTask = serverList.tasks.find((st) =>
+        tasksAreEqual(clientTask, st)
+      );
+      if (!serverTask) {
         // clientTask is new
         result += `Task ${clientTask.text} of list ${clientList.name} is new.${eol}`;
         continue;
       }
-      const serverTask = serverList.tasks.find(
-        (st) =>
-          st.id === clientTask.id &&
-          st.text === clientTask.text &&
-          st.isDone !== clientTask.isDone
-      );
-      if (serverTask) {
+
+      if (serverTask.isDone !== clientTask.isDone) {
         // clientTask has changed
         result += `Task ${clientTask.text} of list ${
           clientList.name
@@ -151,13 +165,10 @@ const syncDryRun = async (clientLists) => {
           clientTask.isDone ? "done" : "undone"
         }.${eol}`;
       }
-
-      //TODO: check if order of tasks in list has changed
     }
   }
 
   return { result };
-  //return { changedTasks: changedTasksFromClient, newTasks: newTasksFromClient };
 };
 
 //const removeDuplicates = (tasks) =>
