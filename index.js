@@ -125,6 +125,8 @@ const syncDryRun = async (clientLists) => {
   const serverLists = await readLists();
   let result = "";
 
+  if (serverLists.length === 0) return { result };
+
   for (const clientList of clientLists) {
     const serverList = serverLists.find((serverList) =>
       listsAreEqual(clientList, serverList)
@@ -185,7 +187,7 @@ const sync = async (clientLists) => {
   const newLists = [];
   for (var i = 0; i < clientLists.length; i++) {
     const clientTasks = clientLists[i].tasks;
-    const serverTasks = serverLists[i].tasks;
+    const serverTasks = serverLists.length > 0 ? serverLists[i].tasks : [];
     const uniqueTasks = removeDuplicates([...clientTasks, ...serverTasks]);
     newLists.push({ ...clientLists[i], tasks: uniqueTasks });
   }
