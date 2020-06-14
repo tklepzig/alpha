@@ -181,12 +181,16 @@ const removeDuplicates = (tasks) =>
   );
 
 const sync = async (clientLists) => {
+  const serverLists = await readLists();
+  const newLists = [];
   for (var i = 0; i < clientLists.length; i++) {
     const clientTasks = clientLists[i].tasks;
-    const serverTasks = await readTasks(i + 1);
+    const serverTasks = serverLists[i].tasks;
     const uniqueTasks = removeDuplicates([...clientTasks, ...serverTasks]);
-    await writeTasks(uniqueTasks, i + 1);
+    newLists.push({ ...clientLists[i], tasks: uniqueTasks });
   }
+
+  await writeLists(newLists);
 };
 
 const markdown = async () => {
