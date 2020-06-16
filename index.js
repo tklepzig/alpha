@@ -185,11 +185,11 @@ const removeDuplicates = (tasks) =>
 const sync = async (clientLists) => {
   const serverLists = await readLists();
   const newLists = [];
-  for (var i = 0; i < clientLists.length; i++) {
-    const clientTasks = clientLists[i].tasks;
+  for (var i = 0; i < serverLists.length; i++) {
+    const clientTasks = clientLists.length > 0 ? clientLists[i].tasks : [];
     const serverTasks = serverLists.length > 0 ? serverLists[i].tasks : [];
     const uniqueTasks = removeDuplicates([...clientTasks, ...serverTasks]);
-    newLists.push({ ...clientLists[i], tasks: uniqueTasks });
+    newLists.push({ ...serverLists[i], tasks: uniqueTasks });
   }
 
   await writeLists(newLists);
