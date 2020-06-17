@@ -286,10 +286,9 @@ const registerRoutes = () => {
   });
 
   app.get("/website-title", async (req, res) => {
-    const response = await fetch(req.query.url);
-    const html = await response.text();
-
     try {
+      const response = await fetch(req.query.url);
+      const html = await response.text();
       var title = html
         .split(/<\/head.*?>/)[0]
         .split(/<title.*?>/)[1]
