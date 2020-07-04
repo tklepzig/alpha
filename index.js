@@ -326,18 +326,17 @@ const start = async () => {
     console.log(`Listening on port ${port}`);
   });
 
-  if (
-    (await fs.exists(`certificates/${certificateDomain}.key`)) &&
-    (await fs.exists(`certificates/${certificateDomain}.crt`))
-  ) {
-    var privateKey = fs.readFileSync(
-      path.resolve(__dirname, `certificates/${certificateDomain}.key`),
-      "utf8"
-    );
-    var certificate = fs.readFileSync(
-      path.resolve(__dirname, `certificates/${certificateDomain}.crt`),
-      "utf8"
-    );
+  const keyPath = path.resolve(
+    __dirname,
+    `certificates/${certificateDomain}.key`
+  );
+  const certPath = path.resolve(
+    __dirname,
+    `certificates/${certificateDomain}.crt`
+  );
+  if ((await fs.pathExists(keyPath)) && (await fs.pathExists(certPath))) {
+    var privateKey = fs.readFileSync(keyPath, "utf8");
+    var certificate = fs.readFileSync(certPath, "utf8");
 
     const httpsServer = https.createServer(
       { key: privateKey, cert: certificate },
